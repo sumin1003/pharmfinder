@@ -12,8 +12,17 @@ app.set('trust proxy', 1);
 
 // 보안 헤더 설정
 app.use(helmet());
-// CORS: 허용된 프론트엔드 오리진만 접근 허용
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
+// CORS: 환경변수 미설정 시 Vercel 프로덕션 URL을 기본값으로 사용
+const ALLOWED_ORIGINS = (process.env.FRONTEND_URL || 'https://pharmfinder.vercel.app')
+  .split(',').map((o) => o.trim());
+app.use(cors({
+  origin: (origin, callback) => {
+    // origin이 없으면 서버 간 요청 또는 개발 도구 — 허용
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    callback(Object.assign(new Error('CORS 정책에 의해 차단됐습니다.'), { status: 403 }));
+  },
+  credentials: true,
+}));
 // HTTP 요청 로깅
 app.use(morgan('dev'));
 // JSON 바디 파싱
