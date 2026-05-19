@@ -1,0 +1,193 @@
+const axios = require('axios');
+const supabase = require('../config/supabase');
+
+// Haversine 공식으로 두 좌표 사이의 거리를 km 단위로 계산
+const getDistance = (lat1, lng1, lat2, lng2) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+// 카카오 주소 → 좌표 변환
+const geocodeAddress = async (address) => {
+  if (!process.env.KAKAO_REST_API_KEY) return { latitude: null, longitude: null };
+
+  const response = await axios.get('https://dapi.kakao.com/v2/local/search/address.json', {
+    headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
+    params: { query: address },
+  });
+
+  const doc = response.data?.documents?.[0];
+  if (!doc) return { latitude: null, longitude: null };
+  return { latitude: parseFloat(doc.y), longitude: parseFloat(doc.x) };
+};
+
+// 기준 좌표에서 반경 내 승인된 약국 목록을 거리순으로 반환 (medicineId 지정 시 해당 재고 보유 약국만)
+const getNearbyPharmacies = async ({ lat, lng, radius = 2, medicineId }) => {
+  let query = supabase
+    .from('pharmacies')
+    .select('id, name, address, phone, latitude, longitude, business_hours')
+    .eq('status', 'approved')
+    .not('latitude', 'is', null);
+
+  // 특정 약품 재고 있는 약국만 필터
+  if (medicineId) {
+    const { data: inventories } = await supabase
+      .from('pharmacy_inventory')
+      .select('pharmacy_id')
+      .eq('medicine_id', medicineId)
+      .gt('quantity', 0);
+
+    const ids = (inventories || []).map((i) => i.pharmacy_id);
+    if (ids.length === 0) return [];
+    query = query.in('id', ids);
+  }
+
+  const { data: pharmacies, error } = await query;
+  if (error) throw error;
+
+  // 거리 계산 후 반경 필터링 및 가까운 순 정렬
+  return pharmacies
+    .map((p) => ({ ...p, distance: getDistance(lat, lng, p.latitude, p.longitude) }))
+    .filter((p) => p.distance <= radius)
+    .sort((a, b) => a.distance - b.distance);
+};
+
+// id로 승인된 특정 약국 상세 정보를 담당자 정보(users)와 함께 조회
+const getPharmacyById = async (id) => {
+  const { data, error } = await supabase
+    .from('pharmacies')
+    .select('*, users(name, email)')
+    .eq('id', id)
+    .eq('status', 'approved')
+    .single();
+
+  if (error || !data) throw Object.assign(new Error('약국을 찾을 수 없습니다.'), { status: 404 });
+  return data;
+};
+
+// 로그인한 약국 사용자의 약국 정보를 조회
+const getMyPharmacy = async (userId) => {
+  const { data, error } = await supabase
+    .from('pharmacies')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) throw Object.assign(new Error('약국 정보를 찾을 수 없습니다.'), { status: 404 });
+  return data;
+};
+
+// 약국 정보를 수정하고, 주소가 변경된 경우 카카오 API로 좌표를 재변환
+const updateMyPharmacy = async (userId, updates) => {
+  if (updates.address) {
+    const coords = await geocodeAddress(updates.address);
+    updates = { ...updates, ...coords };
+  }
+
+  const { data, error } = await supabase
+    .from('pharmacies')
+    .update(updates)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+// 특정 약국의 전체 재고 목록을 의약품 정보와 함께 최신 순으로 조회
+const getInventory = async (pharmacyId) => {
+  const { data, error } = await supabase
+    .from('pharmacy_inventory')
+    .select('*, medicines(id, name, category, efficacy)')
+    .eq('pharmacy_id', pharmacyId)
+    .order('updated_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+// 약국 재고에 의약품을 추가하거나 기존 항목을 덮어씀 (medicine_id 기준 upsert)
+const addInventory = async (pharmacyId, { medicineId, quantity, minQuantity = 10 }) => {
+  const { data, error } = await supabase
+    .from('pharmacy_inventory')
+    .upsert({ pharmacy_id: pharmacyId, medicine_id: medicineId, quantity, min_quantity: minQuantity })
+    .select('*, medicines(name)')
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+// 특정 재고 항목의 수량 또는 최소 수량을 수정
+const updateInventory = async (inventoryId, pharmacyId, { quantity, minQuantity }) => {
+  const updates = {};
+  if (quantity !== undefined) updates.quantity = quantity;
+  if (minQuantity !== undefined) updates.min_quantity = minQuantity;
+  updates.updated_at = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from('pharmacy_inventory')
+    .update(updates)
+    .eq('id', inventoryId)
+    .eq('pharmacy_id', pharmacyId)
+    .select()
+    .single();
+
+  if (error || !data) throw Object.assign(new Error('재고를 찾을 수 없습니다.'), { status: 404 });
+  return data;
+};
+
+// 특정 재고 항목을 삭제 (해당 약국 소유 여부 검증 포함)
+const deleteInventory = async (inventoryId, pharmacyId) => {
+  const { error } = await supabase
+    .from('pharmacy_inventory')
+    .delete()
+    .eq('id', inventoryId)
+    .eq('pharmacy_id', pharmacyId);
+
+  if (error) throw error;
+};
+
+// 즐겨찾기 토글: 이미 등록되어 있으면 삭제, 없으면 추가
+const toggleFavorite = async (userId, pharmacyId) => {
+  const { data: existing } = await supabase
+    .from('favorites')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('pharmacy_id', pharmacyId)
+    .single();
+
+  if (existing) {
+    await supabase.from('favorites').delete().eq('id', existing.id);
+    return { favorited: false };
+  }
+
+  await supabase.from('favorites').insert({ user_id: userId, pharmacy_id: pharmacyId });
+  return { favorited: true };
+};
+
+// 로그인한 사용자의 즐겨찾기 약국 목록을 약국 기본 정보와 함께 조회
+const getFavorites = async (userId) => {
+  const { data, error } = await supabase
+    .from('favorites')
+    .select('*, pharmacies(id, name, address, phone)')
+    .eq('user_id', userId);
+
+  if (error) throw error;
+  return data;
+};
+
+module.exports = {
+  geocodeAddress,
+  getNearbyPharmacies, getPharmacyById, getMyPharmacy, updateMyPharmacy,
+  getInventory, addInventory, updateInventory, deleteInventory,
+  toggleFavorite, getFavorites,
+};

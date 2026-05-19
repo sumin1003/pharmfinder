@@ -1,0 +1,28 @@
+# 환경 변수 (절대 커밋 금지)
+.env
+.env.local
+.env.*.local
+
+# 의존성
+node_modules/
+
+# 빌드 산출물
+dist/
+build/
+
+# 에디터
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 로그
+*.log
+npm-debug.log*
+
+# Claude Code 내부 설정
+.claude/
