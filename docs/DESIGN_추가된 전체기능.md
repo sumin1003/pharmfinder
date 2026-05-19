@@ -274,6 +274,99 @@ GET /api/admin/overview
 
 ---
 
-## 7. 열린 질문 / 결정 필요 사항
+## 7. 배포 설정 (2026-05-19 추가)
 
-없음
+### 인프라 구성
+
+| 항목 | 값 |
+|------|-----|
+| 백엔드 | Render Web Service — https://pharmfinder.onrender.com |
+| 프론트엔드 | Vercel Static — https://pharmfinder.vercel.app |
+| 저장소 | GitHub — https://github.com/sumin1003/pharmfinder |
+
+### 백엔드 설정 (`backend/src/app.js`)
+
+```js
+// Render 리버스 프록시 신뢰
+app.set('trust proxy', 1);
+
+// CORS — Vercel URL 하드코딩 + FRONTEND_URL 환경변수 추가 지원
+const ALLOWED_ORIGINS = new Set([
+  'https://pharmfinder.vercel.app',
+  ...(process.env.FRONTEND_URL || '').split(',').map((o) => o.trim()).filter(Boolean),
+]);
+
+// OAuth 세션 쿠키 — 프로덕션에서만 secure
+cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 5 * 60 * 1000 }
+```
+
+### 프론트엔드 설정 (`frontend/src/services/api.js`)
+
+```js
+// 개발: Vite 프록시(/api → localhost:3000)
+// 프로덕션: VITE_API_URL → https://pharmfinder.onrender.com/api
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api',
+});
+```
+
+### 프론트엔드 SPA 라우팅 (`frontend/vercel.json`)
+
+```json
+{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+```
+직접 URL 접근(`/map`, `/medicines/123` 등) 시 Vercel 404 방지.
+
+### Render 환경변수 (`render.yaml`)
+
+| 키 | 값 | 비고 |
+|----|-----|------|
+| `NODE_ENV` | `production` | 하드코딩 |
+| `PORT` | `10000` | Render 기본 포트 |
+| `BACKEND_URL` | `https://pharmfinder.onrender.com` | |
+| `FRONTEND_URL` | `https://pharmfinder.vercel.app` | CORS 추가 허용 |
+| `JWT_SECRET` | — | Render 대시보드 직접 입력 |
+| `SUPABASE_URL` | — | Render 대시보드 직접 입력 |
+| `SUPABASE_SERVICE_ROLE_KEY` | — | Render 대시보드 직접 입력 |
+| `GROQ_API_KEY` | — | Render 대시보드 직접 입력 |
+| `MFDS_API_KEY` | — | Render 대시보드 직접 입력 |
+| `KAKAO_REST_API_KEY` | — | Render 대시보드 직접 입력 |
+| `SESSION_SECRET` | — | Render 대시보드 직접 입력 |
+| `KAKAO_CLIENT_ID` | — | OAuth용 |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | — | OAuth용 |
+| `NAVER_CLIENT_ID` / `NAVER_CLIENT_SECRET` | — | OAuth용 |
+
+### Vercel 환경변수
+
+| 키 | 값 |
+|----|-----|
+| `VITE_API_URL` | `https://pharmfinder.onrender.com/api` |
+| `VITE_KAKAO_MAP_APP_KEY` | 카카오 JavaScript 키 (401 오류 확인 중) |
+
+### OAuth passport.js 조건부 전략 등록 (`backend/src/config/passport.js`)
+
+```js
+// env 미설정 시 전략 등록 생략 → requireStrategy 미들웨어가 FAILURE로 리다이렉트
+if (process.env.KAKAO_CLIENT_ID) {
+  passport.use(new KakaoStrategy({ ... }, handler));
+} else {
+  console.warn('[passport] KAKAO_CLIENT_ID 미설정 — 카카오 로그인 비활성화');
+}
+```
+
+### Supabase OAuth 마이그레이션 (실행 완료)
+
+```sql
+ALTER TABLE users ALTER COLUMN password DROP NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS provider TEXT NOT NULL DEFAULT 'local';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_id TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS users_provider_id_idx ON users (provider, provider_id)
+  WHERE provider_id IS NOT NULL;
+```
+
+---
+
+## 8. 열린 질문 / 결정 필요 사항
+
+- **카카오맵 401**: `VITE_KAKAO_MAP_APP_KEY` 값이 JavaScript 키인지 재확인 필요 (내일 진행)
+- **OAuth 앱 등록**: 카카오·구글·네이버 등록 우선순위 결정 필요
