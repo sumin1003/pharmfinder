@@ -7,6 +7,9 @@ const passport = require('./config/passport');
 
 const app = express();
 
+// Render 등 리버스 프록시 뒤에서 HTTPS 프로토콜·IP를 올바르게 인식
+app.set('trust proxy', 1);
+
 // 보안 헤더 설정
 app.use(helmet());
 // CORS: 허용된 프론트엔드 오리진만 접근 허용
@@ -22,7 +25,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'pharmfinder-session-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 5 * 60 * 1000 },
+  cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 5 * 60 * 1000 },
 }));
 app.use(passport.initialize());
 app.use(passport.session());

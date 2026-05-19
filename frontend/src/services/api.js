@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// baseURL /api로 설정된 Axios 인스턴스 — JWT 인터셉터 포함
+// 개발: Vite 프록시(/api → localhost:3000), 프로덕션: VITE_API_URL 직접 호출
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 

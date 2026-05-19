@@ -1,0 +1,63 @@
+services:
+  # ── 백엔드: Node.js Web Service ──────────────────────────────────────────
+  - type: web
+    name: pharmfinder-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # 아래 항목은 Render 대시보드 > Environment에서 직접 입력하세요
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: MFDS_API_KEY
+        sync: false
+      - key: MFDS_API_URL
+        value: https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList
+      - key: KAKAO_REST_API_KEY
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: KAKAO_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: NAVER_CLIENT_ID
+        sync: false
+      - key: NAVER_CLIENT_SECRET
+        sync: false
+      # 배포 후 실제 URL로 교체하세요
+      - key: BACKEND_URL
+        value: https://pharmfinder-api.onrender.com
+      - key: FRONTEND_URL
+        value: https://pharmfinder-web.onrender.com
+
+  # ── 프론트엔드: Static Site ──────────────────────────────────────────────
+  - type: static
+    name: pharmfinder-web
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      # 배포 후 백엔드 URL로 교체하세요
+      - key: VITE_API_URL
+        value: https://pharmfinder-api.onrender.com/api
+    routes:
+      # SPA 라우팅: 모든 경로를 index.html로 처리
+      - type: rewrite
+        source: /*
+        destination: /index.html
