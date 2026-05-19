@@ -6,21 +6,34 @@ const { authenticate } = require('../middleware/auth');
 
 const FAILURE = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=social_login_failed`;
 
+// 프로바이더가 미설정일 때 클라이언트를 실패 페이지로 보내는 미들웨어
+const requireStrategy = (strategyName) => (req, res, next) => {
+  try {
+    passport._strategy(strategyName);
+    next();
+  } catch {
+    res.redirect(FAILURE);
+  }
+};
+
 // ── 소셜 OAuth 라우트 ──
-router.get('/kakao', passport.authenticate('kakao'));
+router.get('/kakao', requireStrategy('kakao'), passport.authenticate('kakao'));
 router.get('/kakao/callback',
+  requireStrategy('kakao'),
   passport.authenticate('kakao', { failureRedirect: FAILURE }),
   authController.socialCallback,
 );
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', requireStrategy('google'), passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback',
+  requireStrategy('google'),
   passport.authenticate('google', { failureRedirect: FAILURE }),
   authController.socialCallback,
 );
 
-router.get('/naver', passport.authenticate('naver'));
+router.get('/naver', requireStrategy('naver'), passport.authenticate('naver'));
 router.get('/naver/callback',
+  requireStrategy('naver'),
   passport.authenticate('naver', { failureRedirect: FAILURE }),
   authController.socialCallback,
 );

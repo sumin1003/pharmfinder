@@ -24,5 +24,8 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# 임시 테스트 파일
+Temptest.json
+
 # Claude Code 내부 설정
 .claude/
