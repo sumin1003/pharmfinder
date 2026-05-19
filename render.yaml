@@ -40,24 +40,8 @@ services:
         sync: false
       - key: NAVER_CLIENT_SECRET
         sync: false
-      # 배포 후 실제 URL로 교체하세요
       - key: BACKEND_URL
-        value: https://pharmfinder-api.onrender.com
+        value: https://pharmfinder.onrender.com
+      # 프론트엔드는 Vercel 배포 — CORS 허용 오리진
       - key: FRONTEND_URL
-        value: https://pharmfinder-web.onrender.com
-
-  # ── 프론트엔드: Static Site ──────────────────────────────────────────────
-  - type: static
-    name: pharmfinder-web
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    envVars:
-      # 배포 후 백엔드 URL로 교체하세요
-      - key: VITE_API_URL
-        value: https://pharmfinder-api.onrender.com/api
-    routes:
-      # SPA 라우팅: 모든 경로를 index.html로 처리
-      - type: rewrite
-        source: /*
-        destination: /index.html
+        value: https://pharmfinder.vercel.app
