@@ -2,6 +2,8 @@ const axios = require('axios');
 const Groq = require('groq-sdk');
 const supabase = require('../config/supabase');
 
+const MFDS_URL = 'https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList';
+
 // DB 우선 검색 후 결과가 없으면 식약처 외부 API를 호출하여 의약품 목록 반환
 const searchMedicines = async (query) => {
   // DB 먼저 검색
@@ -14,9 +16,9 @@ const searchMedicines = async (query) => {
   if (dbResults && dbResults.length > 0) return dbResults;
 
   // DB에 없으면 식약처 API 호출
-  if (!process.env.MFDS_API_KEY || !process.env.MFDS_API_URL) throw Object.assign(new Error('식약처 API 설정이 누락되었습니다.'), { status: 503 });
+  if (!process.env.MFDS_API_KEY) throw Object.assign(new Error('식약처 API 설정이 누락되었습니다.'), { status: 503 });
 
-  const response = await axios.get(process.env.MFDS_API_URL, {
+  const response = await axios.get(MFDS_URL, {
     params: {
       serviceKey: process.env.MFDS_API_KEY,
       itemName: query,
