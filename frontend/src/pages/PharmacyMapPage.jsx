@@ -126,7 +126,7 @@ export default function PharmacyMapPage() {
   // 약국 클릭 시 이동 경로 결정: 가입 약국이면 기존 상세 페이지, 아니면 공공약국 상세 페이지
   const handleDetail = (p) => {
     if (p.is_registered && p.linked_pharmacy_id) navigate(`/pharmacies/${p.linked_pharmacy_id}`);
-    else navigate(`/pharmacies/public/${p.id}`);
+    else navigate(`/pharmacies/public/${p.id}`, { state: { pharmacy: p } });
   };
 
   const markerLegend = [

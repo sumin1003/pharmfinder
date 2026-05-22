@@ -1,20 +1,22 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 
 // 공공데이터 약국 상세 — 비가입 약국은 기본 정보만, 가입+연결된 약국은 재고 목록도 표시
 export default function PublicPharmacyDetailPage() {
   const { id } = useParams();
-  const [pharmacy, setPharmacy] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { state } = useLocation();
+  const [pharmacy, setPharmacy] = useState(state?.pharmacy || null);
+  const [loading, setLoading] = useState(!state?.pharmacy);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (state?.pharmacy) return;
     api.get(`/pharmacies/public/${id}`)
       .then((res) => setPharmacy(res.data))
       .catch(() => navigate('/map'))
       .finally(() => setLoading(false));
-  }, [id, navigate]);
+  }, [id, navigate, state]);
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
