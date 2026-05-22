@@ -140,6 +140,7 @@ const syncFromPublicApi = async ({ siNm, sigunguNm }) => {
   const allItems = rawItems ? (Array.isArray(rawItems) ? rawItems : [rawItems]) : [];
 
   console.log('[sync] HIRA 응답 수신:', allItems.length, '개');
+  if (allItems.length > 0) console.log('[sync] 첫 항목 필드:', JSON.stringify(allItems[0]));
   if (allItems.length === 0) return { synced: 0 };
 
   const now = new Date().toISOString();
