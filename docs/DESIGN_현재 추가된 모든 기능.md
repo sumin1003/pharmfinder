@@ -25,6 +25,15 @@
 | POST | `/api/auth/login` | 불필요 | - | 로그인 → JWT 반환 |
 | POST | `/api/auth/logout` | 필요 | - | 로그아웃 |
 | GET  | `/api/auth/me` | 필요 | - | 내 정보 조회 |
+| PUT  | `/api/auth/password` | 필요 | - | 비밀번호 변경 (이메일 가입 계정만, 소셜 계정 불가) |
+| PUT  | `/api/auth/profile` | 필요 | - | 프로필 수정 (이름·이메일, pharmacy 역할이면 약국 정보도 동기화) |
+| GET  | `/api/auth/kakao` | 불필요 | - | 카카오 OAuth 인증 시작 |
+| GET  | `/api/auth/kakao/callback` | 불필요 | - | 카카오 OAuth 콜백 |
+| GET  | `/api/auth/google` | 불필요 | - | 구글 OAuth 인증 시작 |
+| GET  | `/api/auth/google/callback` | 불필요 | - | 구글 OAuth 콜백 |
+| GET  | `/api/auth/naver` | 불필요 | - | 네이버 OAuth 인증 시작 |
+| GET  | `/api/auth/naver/callback` | 불필요 | - | 네이버 OAuth 콜백 |
+| POST | `/api/auth/social/complete` | 불필요 | - | 소셜 신규 가입 완성 (pendingToken 10분 유효 → 이름·이메일 입력 → 계정 생성) |
 
 ```
 POST /api/auth/register
@@ -38,6 +47,18 @@ Response 200: { "token": "jwt...", "user": { "id", "email", "name", "role" } }
 GET /api/auth/me
 Response 200: { "id", "email", "name", "role", "created_at" }
 ```
+
+#### 소셜 로그인 흐름
+1. GET `/api/auth/{provider}` → `requireStrategy` 미들웨어 (미설정 시 실패 리다이렉트)
+2. Passport 인증 → provider + providerId로 기존 계정 조회
+3. **기존 계정**: JWT 발급 → `/auth-callback?token=JWT` 리다이렉트
+4. **신규 계정**: pendingToken 발급 (10분 유효) → `/social-signup?token=pendingToken` 리다이렉트
+5. POST `/api/auth/social/complete` → 이름·이메일 입력 → 계정 생성 → JWT 발급
+
+**소셜 계정 정책:**
+- 동일 provider + providerId: 기존 계정 로그인
+- 동일 이메일로 이미 이메일 가입한 경우: 409 차단
+- OAuth 전략은 환경변수 미설정 시 조건부로 등록하지 않음 (카카오 clientSecret은 선택)
 
 ---
 
@@ -207,11 +228,12 @@ Response 200:
 
 | 테이블 | 주요 컬럼 | 설명 |
 |--------|-----------|------|
-| `users` | id, email, password, name, role, created_at | 전체 사용자 |
+| `users` | id, email, password, name, role, provider, provider_id, created_at | 전체 사용자 (소셜: password=null, provider/provider_id로 식별) |
 | `pharmacies` | id, user_id, name, address, phone, latitude, longitude, status, rejection_reason, business_hours, created_at | 약국 정보 |
 | `medicines` | id, name, category, efficacy, usage, precautions, side_effects | 의약품 정보 |
 | `pharmacy_inventory` | id, pharmacy_id, medicine_id, quantity, min_quantity, updated_at | 약국별 재고 |
 | `favorites` | id, user_id, pharmacy_id, created_at | 사용자 즐겨찾기 |
+| `inventory_alerts` | id, pharmacy_id, medicine_id, alerted_at | 재고 부족 알림 당일 1회 쿨다운 추적 |
 
 `pharmacies.rejection_reason` — 이 세션에서 추가된 컬럼:
 ```sql
@@ -243,6 +265,12 @@ ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
 | `frontend/src/pages/pharmacy/DashboardPage.jsx` | 약국 대시보드 — 재고 관리·내 정보 수정 |
 | `frontend/src/pages/admin/DashboardPage.jsx` | 관리자 대시보드 — 4탭 (대기/거절/약국/회원) |
 | `frontend/src/pages/admin/OverviewPage.jsx` | 전체현황 — KPI·차트 4종·테이블 (recharts) |
+| `frontend/src/pages/ProfilePage.jsx` | 내 프로필 조회/수정, 비밀번호 재설정 링크 |
+| `frontend/src/pages/ResetPasswordPage.jsx` | 비밀번호 재설정 (로그인 상태, 소셜 계정 제외) |
+| `frontend/src/pages/AuthCallbackPage.jsx` | OAuth 콜백 처리 — URL 토큰 파싱 → AuthContext 저장 |
+| `frontend/src/pages/SocialSignupPage.jsx` | 소셜 신규 가입 완성 — pendingToken + 이름·이메일 입력 |
+| `frontend/src/pages/PublicPharmacyDetailPage.jsx` | 공공약국 상세 — Router state 우선 사용, API 폴백 |
+| `frontend/src/utils/businessHours.js` | isOpenNow() — "09:00-18:00" 형식 파싱, 현재 영업 여부 반환 |
 
 ### 등록된 라우트 (App.jsx)
 
@@ -264,6 +292,13 @@ ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
   element={<PrivateRoute roles={['admin']}><AdminDashboard /></PrivateRoute>} />
 <Route path="/admin/overview"
   element={<PrivateRoute roles={['admin']}><OverviewPage /></PrivateRoute>} />
+<Route path="/auth-callback"       element={<AuthCallbackPage />} />
+<Route path="/social-signup"       element={<SocialSignupPage />} />
+<Route path="/pharmacies/public/:id" element={<PublicPharmacyDetailPage />} />
+<Route path="/profile"
+  element={<PrivateRoute roles={['user', 'pharmacy', 'admin']}><ProfilePage /></PrivateRoute>} />
+<Route path="/reset-password"
+  element={<PrivateRoute roles={['user', 'pharmacy', 'admin']}><ResetPasswordPage /></PrivateRoute>} />
 ```
 
 ### 헤더 네비게이션 조건
@@ -318,3 +353,45 @@ GET /api/admin/overview
 ## 7. 열린 질문 / 결정 필요 사항
 
 없음
+
+---
+
+## 8. 이메일 알림 상세 (notificationService.js)
+
+### Gmail SMTP 설정
+- 환경변수: `EMAIL_USER`, `EMAIL_PASSWORD` (Gmail 앱 비밀번호)
+- 미설정 시: `console.warn` 후 조용히 종료 (에러 전파 없음)
+- 라이브러리: nodemailer
+
+### A. 재고 부족 알림 (sendLowStockAlert)
+- **발송 시점**: 재고 추가/수정 시 `quantity <= min_quantity` 자동 확인
+- **쿨다운**: `inventory_alerts` 테이블 — 같은 pharmacy_id + medicine_id 당일 1회만
+- **수신자**: 약국 담당자 이메일 (pharmacies.users.email 조인)
+- **제목**: `[PharmFinder] {약국명} 재고 부족 알림`
+
+### B. 약국 승인/거절 알림 (sendPharmacyStatusEmail)
+- **발송 시점**: 관리자가 `approved` 또는 `rejected`로 상태 변경 시
+- **승인 이메일**: 환영 메시지 + FRONTEND_URL 기반 로그인 링크
+- **거절 이메일**: 거절 사유 + 수정 후 재신청 안내
+- **수신자**: 약국 담당자 이메일 (adminService에서 users(email) 조인 후 전달)
+
+---
+
+## 9. 자동 동기화 Cron Job (node-cron, server.js)
+
+- **스케줄**: `0 18 * * *` (UTC 18:00 = KST 03:00)
+- **대상**: 서울특별시, 경기도, 부산광역시, 인천광역시, 대구광역시 (5개 광역시, 순차)
+- **동작**: `syncFromPublicApi()` 호출 → HIRA API 1페이지(100개) → `public_pharmacies` upsert (hpid 기준)
+- **제한**: 1페이지 고정 (Render 무료 플랜 타임아웃 회피)
+- **실패 처리**: 광역시별 독립 실행, 실패해도 다음 광역시 계속 진행
+
+---
+
+## 10. CSV 재고 업로드 상세 (bulkUpsertInventory)
+
+- **파일 제한**: 1MB (multer memoryStorage)
+- **약품 매칭 2단계**:
+  1. `name = 약품명` exact match
+  2. 없으면 `name ILIKE '%약품명%'` fallback
+- **반환값**: `{ success: N, fuzzy: N, failed: N }` — 부분 일치 건수 프론트에 경고 표시
+- **재고 처리**: upsert (medicine_id + pharmacy_id 복합 키 기준 중복 방지)
