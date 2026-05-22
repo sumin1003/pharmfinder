@@ -2,32 +2,36 @@ const axios = require('axios');
 const supabase = require('../config/supabase');
 
 const HIRA_URL = 'https://apis.data.go.kr/B551182/pharmacyInfoService/getParmacyBasisList';
+const KAKAO_LOCAL_URL = 'https://dapi.kakao.com/v2/local/search/category.json';
 
-const getDistance = (lat1, lng1, lat2, lng2) => {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-    Math.cos((lat2 * Math.PI) / 180) *
-    Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
-
-// 공공데이터 약국 목록을 현재 위치 기준으로 조회하고 가입 약국 재고 여부를 합산
+// 카카오 로컬 API로 현재 위치 기준 주변 약국 실시간 조회 + 가입 약국 재고 여부 합산
 const getNearbyPublicPharmacies = async ({ lat, lng, radius = 3, medicineId }) => {
-  const { data: allPublic, error } = await supabase
+  const radiusM = Math.min(radius * 1000, 20000);
+
+  // 카카오 로컬 카테고리 검색 (PM9 = 약국), 최대 3페이지(45개)
+  let kakaoItems = [];
+  for (let page = 1; page <= 3; page++) {
+    const res = await axios.get(KAKAO_LOCAL_URL, {
+      headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
+      params: { category_group_code: 'PM9', x: lng, y: lat, radius: radiusM, size: 15, page },
+      timeout: 10000,
+    });
+    const docs = res.data?.documents || [];
+    kakaoItems = kakaoItems.concat(docs);
+    if (res.data?.meta?.is_end) break;
+  }
+
+  if (kakaoItems.length === 0) return [];
+
+  // 가입 약국 재고 여부 확인 (public_pharmacies 테이블과 매칭)
+  const hpids = kakaoItems.map((d) => d.id);
+  const { data: linked } = await supabase
     .from('public_pharmacies')
-    .select('id, hpid, name, address, phone, latitude, longitude, linked_pharmacy_id')
-    .not('latitude', 'is', null);
+    .select('hpid, linked_pharmacy_id')
+    .in('hpid', hpids);
 
-  if (error) throw error;
-  if (!allPublic || allPublic.length === 0) return [];
-
-  const registeredIds = allPublic
-    .filter((p) => p.linked_pharmacy_id)
-    .map((p) => p.linked_pharmacy_id);
+  const linkedMap = new Map((linked || []).map((p) => [p.hpid, p.linked_pharmacy_id]));
+  const registeredIds = [...new Set((linked || []).filter((p) => p.linked_pharmacy_id).map((p) => p.linked_pharmacy_id))];
 
   let anyInventorySet = new Set();
   let stockInventorySet = new Set();
@@ -42,33 +46,28 @@ const getNearbyPublicPharmacies = async ({ lat, lng, radius = 3, medicineId }) =
       stockInventorySet = new Set((stockRes.data || []).map((i) => i.pharmacy_id));
     } else {
       const { data: anyData } = await supabase
-        .from('pharmacy_inventory')
-        .select('pharmacy_id')
-        .in('pharmacy_id', registeredIds)
-        .gt('quantity', 0);
+        .from('pharmacy_inventory').select('pharmacy_id').in('pharmacy_id', registeredIds).gt('quantity', 0);
       anyInventorySet = new Set((anyData || []).map((i) => i.pharmacy_id));
     }
   }
 
-  return allPublic
-    .map((p) => ({
-      id: p.id,
-      hpid: p.hpid,
-      name: p.name,
-      address: p.address,
-      phone: p.phone,
-      latitude: p.latitude,
-      longitude: p.longitude,
-      linked_pharmacy_id: p.linked_pharmacy_id,
-      distance: getDistance(lat, lng, p.latitude, p.longitude),
-      is_registered: !!p.linked_pharmacy_id,
-      has_inventory: p.linked_pharmacy_id ? anyInventorySet.has(p.linked_pharmacy_id) : false,
-    }))
-    .filter((p) => {
-      if (p.distance > radius) return false;
-      // 특정 의약품 필터 시 재고 있는 가입 약국만 포함
-      if (medicineId) return p.linked_pharmacy_id && stockInventorySet.has(p.linked_pharmacy_id);
-      return true;
+  return kakaoItems
+    .filter((d) => !medicineId || (linkedMap.has(d.id) && stockInventorySet.has(linkedMap.get(d.id))))
+    .map((d) => {
+      const linkedPharmacyId = linkedMap.get(d.id) || null;
+      return {
+        id: d.id,
+        hpid: d.id,
+        name: d.place_name,
+        address: d.road_address_name || d.address_name,
+        phone: d.phone || null,
+        latitude: parseFloat(d.y),
+        longitude: parseFloat(d.x),
+        linked_pharmacy_id: linkedPharmacyId,
+        distance: parseInt(d.distance, 10) / 1000,
+        is_registered: !!linkedPharmacyId,
+        has_inventory: linkedPharmacyId ? anyInventorySet.has(linkedPharmacyId) : false,
+      };
     })
     .sort((a, b) => a.distance - b.distance);
 };
