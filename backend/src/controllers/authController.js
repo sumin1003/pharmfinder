@@ -81,12 +81,70 @@ const me = async (req, res, next) => {
 /**
  * GET /api/auth/{provider}/callback
  * 인증: 불필요 (passport가 처리)
- * OAuth 콜백 — JWT를 쿼리 파라미터로 담아 프론트엔드 콜백 페이지로 리다이렉트한다.
+ * OAuth 콜백 — 기존 사용자는 JWT를 담아 콜백 페이지로, 신규 사용자는 소셜 가입 완성 페이지로 리다이렉트한다.
  */
 const socialCallback = (req, res) => {
-  if (!req.user?.token)
-    return res.redirect(`${process.env.FRONTEND_URL}/login?error=social_login_failed`);
-  res.redirect(`${process.env.FRONTEND_URL}/auth-callback?token=${req.user.token}`);
+  const FRONTEND = process.env.FRONTEND_URL || 'http://localhost:5173';
+  if (!req.user)
+    return res.redirect(`${FRONTEND}/login?error=social_login_failed`);
+
+  if (req.user.type === 'login')
+    return res.redirect(`${FRONTEND}/auth-callback?token=${req.user.token}`);
+
+  // 신규 사용자 → 소셜 가입 완성 페이지로 (이름·이메일도 함께 전달)
+  const params = new URLSearchParams({ pending: req.user.pendingToken });
+  if (req.user.name) params.set('name', req.user.name);
+  if (req.user.email) params.set('email', req.user.email);
+  return res.redirect(`${FRONTEND}/social-signup?${params.toString()}`);
 };
 
-module.exports = { register, registerPharmacy, login, logout, me, socialCallback };
+/**
+ * PUT /api/auth/password
+ * 인증: 필요 (authenticate)
+ * 현재 비밀번호 확인 후 새 비밀번호로 변경한다. JWT는 유지된다.
+ */
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ message: '현재 비밀번호와 새 비밀번호를 입력해주세요.' });
+    const result = await authService.changePassword(req.user.id, currentPassword, newPassword);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * PUT /api/auth/profile
+ * 인증: 필요 (authenticate)
+ * 사용자 이름·이메일 및 약국 정보(약국 역할인 경우)를 수정한다.
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name, email, pharmacyName, address, phone } = req.body;
+    const result = await authService.updateProfile(req.user.id, req.user.role, { name, email, pharmacyName, address, phone });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /api/auth/social/complete
+ * 인증: 불필요
+ * 소셜 신규 사용자가 이름·이메일을 확인한 뒤 계정을 생성하고 JWT를 반환한다.
+ */
+const completeSocialSignup = async (req, res, next) => {
+  try {
+    const { pendingToken, name, email } = req.body;
+    if (!pendingToken || !name || !email)
+      return res.status(400).json({ message: '필수 항목이 누락됐습니다.' });
+    const result = await authService.completeSocialSignup({ pendingToken, name, email });
+    res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { register, registerPharmacy, login, logout, me, socialCallback, changePassword, updateProfile, completeSocialSignup };

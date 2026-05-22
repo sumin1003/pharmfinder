@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('../config/passport');
-const authController = require('../controllers/authController');
+const { register, registerPharmacy, login, logout, me, socialCallback, changePassword, updateProfile, completeSocialSignup } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 
 const FAILURE = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=social_login_failed`;
@@ -21,32 +21,38 @@ router.get('/kakao', requireStrategy('kakao'), passport.authenticate('kakao'));
 router.get('/kakao/callback',
   requireStrategy('kakao'),
   passport.authenticate('kakao', { failureRedirect: FAILURE }),
-  authController.socialCallback,
+  socialCallback,
 );
 
 router.get('/google', requireStrategy('google'), passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback',
   requireStrategy('google'),
   passport.authenticate('google', { failureRedirect: FAILURE }),
-  authController.socialCallback,
+  socialCallback,
 );
 
 router.get('/naver', requireStrategy('naver'), passport.authenticate('naver'));
 router.get('/naver/callback',
   requireStrategy('naver'),
   passport.authenticate('naver', { failureRedirect: FAILURE }),
-  authController.socialCallback,
+  socialCallback,
 );
 
 // 일반 회원가입
-router.post('/register',           authController.register);
+router.post('/register',           register);
 // 약국 사업자 회원가입
-router.post('/pharmacy/register',  authController.registerPharmacy);
+router.post('/pharmacy/register',  registerPharmacy);
 // 로그인
-router.post('/login',              authController.login);
+router.post('/login',              login);
 // 로그아웃 (토큰 검증 후 클라이언트 측 삭제 안내)
-router.post('/logout',             authenticate, authController.logout);
+router.post('/logout',             authenticate, logout);
 // 내 정보 조회
-router.get('/me',                  authenticate, authController.me);
+router.get('/me',                  authenticate, me);
+// 비밀번호 변경 (이메일 가입 계정만 가능, JWT 유지)
+router.put('/password',            authenticate, changePassword);
+// 프로필 수정 (이름·이메일, 약국 역할이면 약국 정보도)
+router.put('/profile',             authenticate, updateProfile);
+// 소셜 신규 가입 완성
+router.post('/social/complete',    completeSocialSignup);
 
 module.exports = router;

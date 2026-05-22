@@ -11,11 +11,14 @@ import MedicineSearchPage from './pages/MedicineSearchPage';
 import MedicineDetailPage from './pages/MedicineDetailPage';
 import PharmacyMapPage from './pages/PharmacyMapPage';
 import PharmacyDetailPage from './pages/PharmacyDetailPage';
+import PublicPharmacyDetailPage from './pages/PublicPharmacyDetailPage';
 import PharmacyDashboard from './pages/pharmacy/DashboardPage';
 import AdminDashboard from './pages/admin/DashboardPage';
 import OverviewPage from './pages/admin/OverviewPage';
 import FavoritesPage from './pages/FavoritesPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import SocialSignupPage from './pages/SocialSignupPage';
+import ProfilePage from './pages/ProfilePage';
 
 // 앱 루트 — BrowserRouter·AuthProvider·Layout으로 감싸고 전체 라우트를 정의
 export default function App() {
@@ -31,8 +34,14 @@ export default function App() {
             <Route path="/medicines/search" element={<MedicineSearchPage />} />
             <Route path="/medicines/:id" element={<MedicineDetailPage />} />
             <Route path="/map" element={<PharmacyMapPage />} />
+            <Route path="/pharmacies/public/:id" element={<PublicPharmacyDetailPage />} />
             <Route path="/pharmacies/:id" element={<PharmacyDetailPage />} />
             <Route path="/auth-callback" element={<AuthCallbackPage />} />
+            <Route path="/social-signup" element={<SocialSignupPage />} />
+            <Route
+              path="/profile"
+              element={<PrivateRoute roles={['user', 'pharmacy', 'admin']}><ProfilePage /></PrivateRoute>}
+            />
             <Route
               path="/pharmacy/dashboard"
               element={<PrivateRoute roles={['pharmacy']}><PharmacyDashboard /></PrivateRoute>}

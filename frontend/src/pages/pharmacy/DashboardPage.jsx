@@ -14,6 +14,11 @@ export default function PharmacyDashboard() {
   const [editForm, setEditForm] = useState({ name: '', address: '', phone: '', business_hours: '' });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  // 공공데이터 연결
+  const [linkSearch, setLinkSearch] = useState('');
+  const [linkResults, setLinkResults] = useState([]);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkMsg, setLinkMsg] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,6 +91,37 @@ export default function PharmacyDashboard() {
     });
     setSaveError('');
     setEditing(true);
+  };
+
+  // 공공데이터 약국 검색 (이름으로)
+  const handleLinkSearch = async (e) => {
+    e.preventDefault();
+    if (!linkSearch.trim()) return;
+    setLinkLoading(true);
+    setLinkResults([]);
+    setLinkMsg('');
+    try {
+      const res = await api.get('/pharmacies/public/search', { params: { q: linkSearch } });
+      setLinkResults(res.data);
+      if (res.data.length === 0) setLinkMsg('검색 결과가 없습니다. 다른 약국명으로 시도해보세요.');
+    } catch {
+      setLinkMsg('검색에 실패했습니다.');
+    } finally {
+      setLinkLoading(false);
+    }
+  };
+
+  // 공공데이터 약국과 내 약국 연결 확정
+  const handleLinkConfirm = async (publicPharmacyId, publicName) => {
+    if (!window.confirm(`'${publicName}'과(와) 연결하시겠습니까?`)) return;
+    try {
+      await api.put('/pharmacies/public/self/link', { publicPharmacyId });
+      setLinkMsg(`'${publicName}'과(와) 연결됐습니다. 지도에서 재고 관리 약국으로 표시됩니다.`);
+      setLinkResults([]);
+      setLinkSearch('');
+    } catch (err) {
+      setLinkMsg(err.response?.data?.message || '연결에 실패했습니다.');
+    }
   };
 
   // 약국 정보 저장 — PUT /pharmacies/my/info 호출 후 로컬 상태 갱신
@@ -372,6 +408,63 @@ export default function PharmacyDashboard() {
           <p style={{ textAlign: 'center', color: '#94a3b8', padding: '32px 0' }}>
             등록된 재고가 없습니다.
           </p>
+        )}
+      </div>
+
+      {/* 공공데이터 약국 연결 */}
+      <div style={{ background: 'white', borderRadius: 20, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', padding: '24px', marginTop: 32 }}>
+        <h2 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>지도 연결 설정</h2>
+        <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>
+          공공데이터 약국 목록에서 내 약국을 찾아 연결하면 지도에서 &apos;재고 관리 중&apos; 약국으로 표시됩니다.
+        </p>
+        <form onSubmit={handleLinkSearch} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <input
+            type="text"
+            value={linkSearch}
+            onChange={(e) => setLinkSearch(e.target.value)}
+            placeholder="약국 이름으로 검색"
+            style={{ flex: 1, border: '1.5px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', fontSize: 14, background: '#f8fafc', color: '#0f172a', outline: 'none' }}
+          />
+          <button
+            type="submit"
+            disabled={linkLoading}
+            style={{ padding: '10px 16px', background: '#f1f5f9', color: '#334155', border: 'none', borderRadius: 12, fontSize: 14, cursor: 'pointer' }}
+          >
+            {linkLoading ? '검색 중...' : '검색'}
+          </button>
+        </form>
+
+        {linkMsg && (
+          <p style={{ fontSize: 13, color: linkMsg.includes('연결됐습니다') ? '#16a34a' : '#dc2626', marginBottom: 12 }}>
+            {linkMsg}
+          </p>
+        )}
+
+        {linkResults.length > 0 && (
+          <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
+            {linkResults.map((r, idx) => (
+              <div
+                key={r.id}
+                style={{ padding: '12px 16px', borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: '#0f172a' }}>{r.name}</p>
+                  <p style={{ fontSize: 12, color: '#94a3b8' }}>{r.address}</p>
+                  {r.linked_pharmacy_id && (
+                    <p style={{ fontSize: 11, color: '#f59e0b' }}>이미 연결된 약국</p>
+                  )}
+                </div>
+                {!r.linked_pharmacy_id && (
+                  <button
+                    onClick={() => handleLinkConfirm(r.id, r.name)}
+                    style={{ padding: '6px 14px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: 10, fontSize: 13, cursor: 'pointer' }}
+                  >
+                    연결
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

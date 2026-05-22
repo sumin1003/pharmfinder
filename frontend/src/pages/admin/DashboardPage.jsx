@@ -639,6 +639,252 @@ function MedicineFormFields({ form, onChange }) {
   );
 }
 
+// 공공약국 연결 탭 — 공공데이터 약국과 가입 약국을 수동으로 연결·해제
+function PublicLinkTab() {
+  const [searchQ, setSearchQ] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [registeredPharmacies, setRegisteredPharmacies] = useState([]);
+  const [selectedMap, setSelectedMap] = useState({});   // publicId → registeredPharmacyId
+  const [actionMsg, setActionMsg] = useState({});       // publicId → { type: 'ok'|'err', text }
+  const [processing, setProcessing] = useState({});     // publicId → boolean
+
+  useEffect(() => {
+    api.get('/admin/pharmacies/approved')
+      .then((r) => setRegisteredPharmacies(r.data))
+      .catch(() => {});
+  }, []);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQ.trim() || searchQ.trim().length < 2) return;
+    setSearching(true);
+    setResults([]);
+    setActionMsg({});
+    try {
+      const { data } = await api.get('/pharmacies/public/search', { params: { q: searchQ } });
+      setResults(data);
+    } catch {
+      /* 검색 실패 무시 */
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleLink = async (publicId) => {
+    const regId = selectedMap[publicId];
+    if (!regId) { setActionMsg((m) => ({ ...m, [publicId]: { type: 'err', text: '연결할 약국을 선택하세요.' } })); return; }
+    setProcessing((p) => ({ ...p, [publicId]: true }));
+    try {
+      await api.put(`/pharmacies/public/${publicId}/link`, { registeredPharmacyId: regId });
+      const regName = registeredPharmacies.find((r) => r.id === regId)?.name || '';
+      setResults((prev) => prev.map((p) => p.id === publicId ? { ...p, linked_pharmacy_id: regId, _linkedName: regName } : p));
+      setActionMsg((m) => ({ ...m, [publicId]: { type: 'ok', text: `'${regName}'과(와) 연결됐습니다.` } }));
+    } catch (err) {
+      setActionMsg((m) => ({ ...m, [publicId]: { type: 'err', text: err.response?.data?.message || '연결에 실패했습니다.' } }));
+    } finally {
+      setProcessing((p) => ({ ...p, [publicId]: false }));
+    }
+  };
+
+  const handleUnlink = async (publicId) => {
+    if (!window.confirm('연결을 해제하시겠습니까?')) return;
+    setProcessing((p) => ({ ...p, [publicId]: true }));
+    try {
+      await api.delete(`/pharmacies/public/${publicId}/link`);
+      setResults((prev) => prev.map((p) => p.id === publicId ? { ...p, linked_pharmacy_id: null, _linkedName: null } : p));
+      setActionMsg((m) => ({ ...m, [publicId]: { type: 'ok', text: '연결이 해제됐습니다.' } }));
+    } catch {
+      setActionMsg((m) => ({ ...m, [publicId]: { type: 'err', text: '해제에 실패했습니다.' } }));
+    } finally {
+      setProcessing((p) => ({ ...p, [publicId]: false }));
+    }
+  };
+
+  return (
+    <div>
+      <p style={{ fontSize: 14, color: '#64748b', marginBottom: 16, lineHeight: 1.6 }}>
+        공공데이터 약국을 검색해 PharmFinder 가입 약국과 연결합니다. 연결된 약국은 지도에서 재고 관리 약국으로 표시됩니다.
+      </p>
+
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, marginBottom: 20, maxWidth: 480 }}>
+        <input
+          style={{ ...s.input, flex: 1 }}
+          value={searchQ}
+          onChange={(e) => setSearchQ(e.target.value)}
+          placeholder="공공데이터 약국 이름으로 검색 (2자 이상)"
+        />
+        <button type="submit" disabled={searching} style={{ ...s.btnPrimary, opacity: searching ? 0.7 : 1, whiteSpace: 'nowrap' }}>
+          {searching ? '검색 중...' : '검색'}
+        </button>
+      </form>
+
+      {results.length === 0 && !searching && searchQ && (
+        <p style={s.emptyText}>검색 결과가 없습니다.</p>
+      )}
+
+      <div style={s.cardList}>
+        {results.map((pub) => {
+          const isLinked = !!pub.linked_pharmacy_id;
+          const msg = actionMsg[pub.id];
+          const busy = !!processing[pub.id];
+
+          return (
+            <div key={pub.id} style={s.card}>
+              <div style={s.cardRow}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <p style={s.pharmacyName}>{pub.name}</p>
+                    {isLinked ? (
+                      <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: 999, fontWeight: 500 }}>연결됨</span>
+                    ) : (
+                      <span style={{ fontSize: 11, background: '#f1f5f9', color: '#94a3b8', padding: '2px 8px', borderRadius: 999 }}>미연결</span>
+                    )}
+                  </div>
+                  {pub.address && <p style={s.pharmacyAddress}>{pub.address}</p>}
+                  {pub.phone && <p style={s.pharmacyPhone}>{pub.phone}</p>}
+                  {isLinked && (
+                    <p style={{ fontSize: 12, color: '#059669', marginTop: 4 }}>
+                      연결된 약국: {pub._linkedName || pub.linked_pharmacy_id}
+                    </p>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end', minWidth: 200 }}>
+                  {isLinked ? (
+                    <button
+                      onClick={() => handleUnlink(pub.id)}
+                      disabled={busy}
+                      style={{ ...s.btnDanger, opacity: busy ? 0.6 : 1 }}
+                    >
+                      연결 해제
+                    </button>
+                  ) : (
+                    <>
+                      <select
+                        value={selectedMap[pub.id] || ''}
+                        onChange={(e) => setSelectedMap((m) => ({ ...m, [pub.id]: e.target.value }))}
+                        style={{ padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 10, fontSize: 13, color: '#334155', background: 'white', maxWidth: 200 }}
+                      >
+                        <option value="">가입 약국 선택</option>
+                        {registeredPharmacies.map((r) => (
+                          <option key={r.id} value={r.id}>{r.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleLink(pub.id)}
+                        disabled={busy || !selectedMap[pub.id]}
+                        style={{ ...s.btnPrimary, opacity: (busy || !selectedMap[pub.id]) ? 0.6 : 1 }}
+                      >
+                        연결
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {msg && (
+                <p style={{ fontSize: 12, marginTop: 8, color: msg.type === 'ok' ? '#16a34a' : '#dc2626' }}>
+                  {msg.text}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// 공공약국 동기화 탭 — 지역을 입력해 HIRA API에서 약국 목록을 가져와 저장
+function PublicSyncTab() {
+  const [siNm, setSiNm] = useState('');
+  const [sigunguNm, setSigunguNm] = useState('');
+  const [syncing, setSyncing] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+
+  const handleSync = async (e) => {
+    e.preventDefault();
+    if (!siNm.trim()) { setError('시도명을 입력하세요.'); return; }
+    setSyncing(true);
+    setResult(null);
+    setError('');
+    try {
+      const { data } = await api.post('/pharmacies/public/sync', { siNm: siNm.trim(), sigunguNm: sigunguNm.trim() });
+      setResult(data);
+    } catch (err) {
+      setError(err.response?.data?.message || '동기화에 실패했습니다.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const examples = ['서울특별시', '경기도', '부산광역시', '인천광역시', '대구광역시'];
+
+  return (
+    <div style={{ maxWidth: 480 }}>
+      <p style={{ fontSize: 14, color: '#64748b', marginBottom: 20, lineHeight: 1.6 }}>
+        건강보험심사평가원 약국정보서비스 API에서 지역별 약국을 가져와 지도에 표시할 수 있도록 저장합니다.
+        시군구명은 선택 입력이며, 비워두면 시도 전체를 동기화합니다.
+      </p>
+
+      <form onSubmit={handleSync}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+          <div>
+            <label style={s.formLabel}>시도명 *</label>
+            <input
+              style={s.input}
+              value={siNm}
+              onChange={(e) => setSiNm(e.target.value)}
+              placeholder="예: 서울특별시"
+              disabled={syncing}
+            />
+          </div>
+          <div>
+            <label style={s.formLabel}>시군구명 (선택)</label>
+            <input
+              style={s.input}
+              value={sigunguNm}
+              onChange={(e) => setSigunguNm(e.target.value)}
+              placeholder="예: 강남구"
+              disabled={syncing}
+            />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>빠른 선택:</p>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {examples.map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                onClick={() => setSiNm(ex)}
+                style={{ padding: '4px 10px', background: siNm === ex ? '#dcfce7' : '#f1f5f9', color: siNm === ex ? '#16a34a' : '#64748b', border: 'none', borderRadius: 999, fontSize: 12, cursor: 'pointer' }}
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {error && <p style={s.errorText}>{error}</p>}
+
+        {result && (
+          <div style={{ background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14, color: '#16a34a' }}>
+            ✅ {result.message}
+          </div>
+        )}
+
+        <button type="submit" disabled={syncing} style={{ ...s.btnPrimary, opacity: syncing ? 0.7 : 1 }}>
+          {syncing ? '동기화 중...' : '동기화 실행'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 // 관리자 대시보드 — 약국 승인/거절/관리, 회원 관리, 약품 관리를 탭으로 제공
 export default function AdminDashboard() {
   const [tab, setTab] = useState('pending');
@@ -649,6 +895,8 @@ export default function AdminDashboard() {
     { key: 'pharmacies', label: '약국 관리' },
     { key: 'users', label: '회원 관리' },
     { key: 'medicines', label: '약품 관리' },
+    { key: 'publiclink', label: '공공약국 연결' },
+    { key: 'publicsync', label: '공공약국 동기화' },
   ];
 
   return (
@@ -668,6 +916,8 @@ export default function AdminDashboard() {
       {tab === 'pharmacies' && <PharmaciesTab />}
       {tab === 'users'      && <UsersTab />}
       {tab === 'medicines'  && <MedicinesTab />}
+      {tab === 'publiclink' && <PublicLinkTab />}
+      {tab === 'publicsync' && <PublicSyncTab />}
     </div>
   );
 }

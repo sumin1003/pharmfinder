@@ -1,8 +1,7 @@
 # PharmFinder — 작업 계획서
 
-> 최초 생성: 2026-05-19  
-> 최종 업데이트: 2026-05-19  
-> 기준: SPEC.md 없음 — CLAUDE.md + 코드베이스 직접 분석
+> 갱신일: 2026-05-21
+> 기준: CLAUDE.md + 코드베이스 직접 분석 (SPEC.md 없음)
 
 ---
 
@@ -10,35 +9,37 @@
 
 | 기능 | 백엔드 | 프론트 | 비고 |
 |------|--------|--------|------|
-| 일반 회원가입 | ✅ | ✅ | `POST /api/auth/register` → `RegisterPage` |
-| 약국 사업자 회원가입 | ✅ | ✅ | `POST /api/auth/pharmacy/register` → `PharmacyRegisterPage` |
-| 이메일 로그인 / 로그아웃 | ✅ | ✅ | JWT, AuthContext, localStorage |
-| 소셜 로그인 코드 완성 | ✅ | ✅ | passport.js 조건부 전략 등록, Supabase 마이그레이션 실행 완료 — OAuth 앱 등록 미완료 |
-| 내 정보 조회 | ✅ | ✅ | `GET /api/auth/me` → AuthContext 초기화 |
-| 약품 검색 | ✅ | ✅ | `GET /api/medicines/search` → `MedicineSearchPage` |
-| 약품 상세 조회 | ✅ | ✅ | `GET /api/medicines/:id` → `MedicineDetailPage` |
-| AI 증상 기반 의약품 추천 | ✅ | ✅ | `POST /api/medicines/recommend` → `HomePage` 검색 창 |
-| 약국 지도 (카카오맵) | ✅ | ✅ | `GET /api/pharmacies/nearby` → `PharmacyMapPage` — 카카오맵 키 설정 미완료 |
-| 약국 상세 조회 | ✅ | ✅ | `GET /api/pharmacies/:id` → `PharmacyDetailPage` |
-| 약국 즐겨찾기 토글 | ✅ | ✅ | `POST /api/pharmacies/:id/favorite` → `PharmacyDetailPage` 버튼 |
-| 약국 재고 조회 (공개) | ✅ | ✅ | `GET /api/pharmacies/:id/inventory` → `PharmacyDetailPage` |
-| 즐겨찾기 목록 페이지 | ✅ | ✅ | `GET /api/pharmacies/my/favorites` → `FavoritesPage` |
-| 약국 대시보드 — 재고 CRUD | ✅ | ✅ | `POST/PUT/DELETE /api/pharmacies/inventory` |
-| 약국 내 정보 자체 수정 | ✅ | ✅ | `PUT /api/pharmacies/my/info` → `PharmacyDashboard` 인라인 폼 |
-| 관리자 — 약국 승인/거절/재승인/삭제 | ✅ | ✅ | 거절 사유, 재고 참조 시 409 차단 |
-| 관리자 — 약국 정보 수정 | ✅ | ✅ | 주소 변경 시 재지오코딩 |
-| 관리자 — 회원 목록/삭제/역할 변경 | ✅ | ✅ | 페이지네이션, 역할 필터 |
-| 관리자 — 약품 CRUD | ✅ | ✅ | `GET/POST/PUT/DELETE /api/admin/medicines` |
-| 관리자 — 전체현황 KPI·차트 | ✅ | ✅ | `GET /api/admin/overview` → `OverviewPage` (recharts) |
-| AI 추천 UX 개선 | - | ✅ | "종류 보기 →" 버튼, `MedicineDetailPage` 약국 찾기 버튼 |
-| **GitHub 초기 푸시** | - | - | https://github.com/sumin1003/pharmfinder.git (master) |
-| **Render 배포 (백엔드)** | ✅ | - | https://pharmfinder.onrender.com — render.yaml 작성 완료 |
-| **Vercel 배포 (프론트엔드)** | - | ✅ | https://pharmfinder.vercel.app — vercel.json SPA 라우팅 설정 완료 |
-| **CORS 프로덕션 설정** | ✅ | - | `trust proxy 1`, `pharmfinder.vercel.app` 하드코딩, FRONTEND_URL 추가 지원 |
-| **VITE_API_URL 프로덕션 연결** | - | ✅ | Vercel 환경변수에 `https://pharmfinder.onrender.com/api` 설정 |
-| **package-lock.json gitignore** | - | - | `.gitignore` 추가 + `git rm --cached` 완료 |
-| **vercel.json SPA 라우팅** | - | ✅ | 직접 URL 접근 시 404 방지 (`rewrites: [{ source: "/(.*)", destination: "/index.html" }]`) |
-| **Supabase OAuth 마이그레이션** | ✅ | - | `users` 테이블에 `provider`, `provider_id` 컬럼 추가 완료 |
+| 일반 회원가입 | ✅ | ✅ | POST /api/auth/register, bcrypt 해싱 |
+| 약국 사업자 회원가입 | ✅ | ✅ | POST /api/auth/pharmacy/register, pending→approved |
+| 이메일 로그인 / 로그아웃 | ✅ | ✅ | JWT 발급, 클라이언트 측 삭제 |
+| 카카오 OAuth 로그인 | ✅ | ✅ | Kakao Client Secret 설정 포함 |
+| 구글 OAuth 로그인 | ✅ | ✅ | passport-google-oauth20 |
+| 네이버 OAuth 로그인 | ✅ | ✅ | passport-naver |
+| 소셜 신규 가입 완성 | ✅ | ✅ | pendingToken → SocialSignupPage → 계정 생성 |
+| 소셜 로그인 배포 대응 | ✅ | ✅ | VITE_API_URL 동적화, LoginPage href 수정 |
+| 내 정보 조회 | ✅ | ✅ | GET /api/auth/me |
+| 프로필 수정 | ✅ | ✅ | PUT /api/auth/profile, 약국 정보 동기화 포함 |
+| 비밀번호 변경 | ✅ | ✅ | PUT /api/auth/password, 소셜 계정 차단, JWT 유지 |
+| 의약품 이름 검색 | ✅ | ✅ | DB 우선 → 식약처 API 폴백, 결과 캐싱 |
+| 의약품 상세 조회 | ✅ | ✅ | MedicineDetailPage |
+| AI 증상 기반 약품 추천 | ✅ | ✅ | Groq LLaMA-3.3-70b, POST /api/medicines/recommend |
+| 약국 지도 — 공공데이터 전체 | ✅ | ✅ | GET /api/pharmacies/public/nearby, 3색 마커(녹/황/회) |
+| 공공약국 상세 페이지 | ✅ | ✅ | /pharmacies/public/:id, 비가입/가입 분기 |
+| 가입 약국 상세 + 재고 | ✅ | ✅ | PharmacyDetailPage, 품절·부족 배지 |
+| 공공데이터 약국 검색 | ✅ | ✅ | GET /api/pharmacies/public/search (연결 선택용) |
+| 공공데이터 약국 동기화 (Admin) | ✅ | ✅ | POST /api/pharmacies/public/sync, HIRA API |
+| 약국-공공데이터 자가 연결 | ✅ | ✅ | 약국 대시보드 "지도 연결 설정" 섹션 |
+| 재고 관리 (약국 대시보드) | ✅ | ✅ | 추가·수정·삭제, requireApprovedPharmacy 보호 |
+| 내 약국 정보 조회·수정 | ✅ | ✅ | 주소 변경 시 카카오 지오코딩 재적용 |
+| 즐겨찾기 토글 / 목록 | ✅ | ✅ | FavoritesPage |
+| 의약품 → 재고 약국 지도 이동 | ✅ | ✅ | MedicineDetailPage → /map?medicine=:id |
+| Admin — 약국 승인·거절·재승인 | ✅ | ✅ | 거절 사유 입력, pending 복귀 지원 |
+| Admin — 약국 관리 | ✅ | ✅ | 인라인 수정·삭제 |
+| Admin — 회원 관리 | ✅ | ✅ | 페이지네이션, 역할 변경, 삭제 |
+| Admin — 약품 관리 | ✅ | ✅ | CRUD, 페이지네이션 |
+| Admin — 개요 통계 | ✅ | ✅ | OverviewPage, KPI 4종 |
+| Admin — 공공약국 동기화 탭 | ✅ | ✅ | 시도/시군구 입력, 빠른 선택 버튼 |
+| 배포 환경 설정 | ✅ | ✅ | Render(백) + Vercel(프론트), CORS 설정 완료 |
 
 ---
 
@@ -46,47 +47,58 @@
 
 | 기능 | 백엔드 | 프론트 | 우선순위 | 설명 |
 |------|--------|--------|----------|------|
-| 카카오맵 API 키 설정 | - | ❌ | P1 | `VITE_KAKAO_MAP_APP_KEY` Vercel 환경변수 — JavaScript 키 값 확인 필요. 현재 401 Unauthorized 반환 중 |
-| 카카오 OAuth 앱 등록 | ❌ | - | P2 | 카카오 개발자 콘솔에서 리다이렉트 URI 등록 + 카카오 로그인 활성화 |
-| 구글 OAuth 앱 등록 | ❌ | - | P2 | Google Cloud Console에서 OAuth 앱 생성 + `.env` 키 설정 |
-| 네이버 OAuth 앱 등록 | ❌ | - | P2 | 네이버 개발자 센터에서 앱 등록 + `.env` 키 설정 |
+| public_pharmacies DB 초기 적재 | N/A | N/A | **P1** | migration SQL 실행 + Admin 동기화 버튼으로 데이터 투입 필요 |
+| HIRA_API_KEY 환경변수 | N/A | N/A | **P1** | .env 및 Render에 실제 키 입력 필요 |
+| 배포 OAuth 콜백 URI 등록 | N/A | N/A | **P1** | 카카오·구글·네이버 콘솔에 onrender.com URI 추가 필요 |
+| Vercel VITE_API_URL 설정 | N/A | N/A | **P1** | 미설정 시 소셜 로그인 프로덕션에서 실패 |
+| JWT_SECRET / SESSION_SECRET 강화 | N/A | N/A | **P1** | 개발용 dev 값 → 랜덤 64자로 교체 필요 |
+| Admin — 공공약국 수동 연결 UI | ✅ | ✅ | P2 | "공공약국 연결" 탭 추가 완료 |
+| 약국 영업시간 표시 | ✅ | ❌ | P2 | business_hours 필드 있으나 지도·공공상세에 미표시 |
+| 비밀번호 찾기 (이메일 재설정) | ❌ | ❌ | P2 | 이메일 발송 서비스 연동 필요 |
+| 알림 시스템 | ❌ | ❌ | P3 | 약국 승인 결과·재고 부족 이메일/푸시 |
+| CSV 재고 일괄 업로드 | ❌ | ❌ | P3 | 약국 대시보드 편의 기능 |
+| 영업 중 / 영업 종료 실시간 배지 | ❌ | ❌ | P3 | 영업시간 파싱 + 현재 시각 비교 |
+| 공공약국 자동 주기 동기화 | ❌ | ❌ | P3 | 현재 수동 방식 — 크론 자동화 미구현 |
+| Supabase RLS 적용 | ❌ | N/A | P3 | service_role 키로 RLS 우회 중 — 보안 정책 미적용 |
 
 ---
 
-## 3. 이번 대화 신규 요청 및 완료 작업
+## 3. 이번 대화 신규 요청
 
-| 요청 내용 | 상태 | 비고 |
-|-----------|------|------|
-| 약국 내 정보 자체 수정 (P2 Gap) | 완료 | `PUT /api/pharmacies/my/info` + DashboardPage 인라인 폼 |
-| GitHub 초기 푸시 | 완료 | master 브랜치 |
-| Render 배포 준비 | 완료 | render.yaml 생성 |
-| Vercel + Render 연결 확인 | 완료 | VITE_API_URL 설정, CORS 수정 |
-| OAuth passport.js 크래시 수정 | 완료 | 조건부 전략 등록 (env 미설정 시 경고만 출력) |
-| package-lock.json gitignore | 완료 | .gitignore 추가 + git rm --cached |
-| vercel.json SPA 라우팅 | 완료 | /map 직접 접근 404 수정 |
-| 카카오맵 401 오류 | **진행 중** | VITE_KAKAO_MAP_APP_KEY JavaScript 키 확인 필요 — 내일 진행 |
+| 요청 내용 | 상태 | SDD 작성 여부 |
+|-----------|------|---------------|
+| 배포 환경 소셜 로그인 준비 (Render+Vercel) | 완료 | 있음 |
+| 공공데이터 전체 약국 지도 + 가입 약국 재고 연동 | 완료 | 있음 |
 
 ---
 
 ## 4. 우선순위별 작업 계획
 
-### P1 — 즉시 필요 (운영 불가)
-
-- [ ] 카카오맵 API 키 수정 — Vercel `VITE_KAKAO_MAP_APP_KEY`에 **JavaScript 키** 값이 정확히 설정됐는지 확인 후 Redeploy
+### P1 — 즉시 필요 (운영 불가 or 데이터 누락)
+- [ ] Supabase SQL Editor에서 `supabase/migrations/add_public_pharmacies.sql` 실행
+- [ ] `backend/.env`에 `HIRA_API_KEY` 실제 키 입력
+- [ ] Admin 로그인 → "공공약국 동기화" 탭 → 지역별 초기 데이터 적재
+- [ ] Render 환경변수: `HIRA_API_KEY`, `KAKAO_CLIENT_SECRET`, `NODE_ENV=production`, `JWT_SECRET`(강화), `SESSION_SECRET`(강화) 추가
+- [ ] Vercel 환경변수: `VITE_API_URL=https://pharmfinder.onrender.com/api` 설정 후 Redeploy
+- [ ] 카카오/구글/네이버 콘솔에 프로덕션 Callback URI 등록
 
 ### P2 — 중요 (핵심 UX 완성도)
-
-- [ ] 카카오 OAuth 앱 등록 — 카카오 개발자 콘솔에서 리다이렉트 URI `https://pharmfinder.onrender.com/api/auth/kakao/callback` 등록
-- [ ] 구글 OAuth 앱 등록 — Google Cloud Console OAuth 2.0 클라이언트 생성
-- [ ] 네이버 OAuth 앱 등록 — 네이버 개발자 센터 앱 등록
+- [x] Admin 대시보드에 공공약국 ↔ 가입약국 수동 연결 UI 추가 ✅ 완료
+- [ ] 지도·공공약국 상세에 영업시간 표시
+- [ ] 비밀번호 찾기 이메일 재설정 기능
 
 ### P3 — 개선 (편의·polish)
-
-- [ ] 카카오 Web 플랫폼에 `http://localhost:5173` 도메인 추가 (개발 환경 테스트용)
+- [ ] 재고 부족 시 이메일 알림 발송
+- [ ] CSV 파일 재고 일괄 업로드
+- [ ] 영업시간 파싱 → "영업 중 / 영업 종료" 배지
+- [ ] 공공데이터 야간 자동 동기화 (크론)
+- [ ] Supabase Row Level Security 정책 적용
 
 ---
 
 ## 5. 보류 / 결정 필요
 
-- **카카오맵 JavaScript 키**: `a75063199fbd759372bd0808eb9eeeff` 값이 실제 JavaScript 키인지 재확인 필요 — 카카오 콘솔 앱 키 탭에서 JavaScript 키 칸 값과 대조
-- **OAuth 앱 등록 범위**: 카카오·구글·네이버 모두 등록할지, 카카오만 우선 처리할지 결정 필요
+- **공공약국 자동 매칭**: 이름+주소 유사도로 자동 연결할지, 수동 연결만 지원할지
+- **소셜 계정 병합 정책**: 동일 이메일로 이메일 가입 후 소셜 로그인 시 현재 409 차단 — 병합 허용 여부
+- **비밀번호 찾기 구현 방식**: Supabase Auth 이메일 vs nodemailer 직접 발송
+- **Supabase RLS 적용 범위**: service_role 키 유지 vs 테이블별 RLS 정책 적용

@@ -14,6 +14,7 @@ if (process.env.KAKAO_CLIENT_ID) {
   passport.use(new KakaoStrategy(
     {
       clientID: process.env.KAKAO_CLIENT_ID,
+      clientSecret: process.env.KAKAO_CLIENT_SECRET || undefined,
       callbackURL: `${BACKEND_URL}/api/auth/kakao/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {

@@ -1,11 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const pharmacyController = require('../controllers/pharmacyController');
+const publicPharmacyController = require('../controllers/publicPharmacyController');
 const { authenticate, authorize, requireApprovedPharmacy } = require('../middleware/auth');
 
 // Public
 // 현재 위치 기준 근처 약국 목록 조회
 router.get('/nearby',          pharmacyController.getNearby);
+
+// 공공데이터 약국 — 비파라미터 경로 먼저 (/:id보다 앞에 위치해야 함)
+router.get('/public/nearby',     publicPharmacyController.getNearby);
+router.get('/public/search',     publicPharmacyController.search);
+router.put('/public/self/link',  authenticate, authorize('pharmacy'), requireApprovedPharmacy, publicPharmacyController.linkSelf);
+router.post('/public/sync',      authenticate, authorize('admin'), publicPharmacyController.sync);
+router.get('/public/:id',        publicPharmacyController.getById);
+router.put('/public/:id/link',   authenticate, authorize('admin'), publicPharmacyController.link);
+router.delete('/public/:id/link', authenticate, authorize('admin'), publicPharmacyController.unlink);
 // 특정 약국 상세 조회
 router.get('/:id',             pharmacyController.getById);
 // 특정 약국의 재고 목록 조회

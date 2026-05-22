@@ -10,6 +10,14 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+    const pending = params.get('pending');
+    if (pending) {
+      const name = params.get('name') || '';
+      const email = params.get('email') || '';
+      navigate(`/social-signup?pending=${encodeURIComponent(pending)}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`, { replace: true });
+      return;
+    }
+
     const token = params.get('token');
     const error = params.get('error');
 

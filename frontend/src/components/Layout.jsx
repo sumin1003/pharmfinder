@@ -78,7 +78,9 @@ export default function Layout({ children }) {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 13, fontWeight: 700, color: '#065f46',
                   }}>{user.name[0]}</div>
-                  <span style={{ fontSize: 14, color: '#334155', fontWeight: 500 }}>{user.name}</span>
+                  <Link to="/profile" style={{ fontSize: 14, color: '#334155', fontWeight: 500, textDecoration: 'none' }}>
+                    {user.name}
+                  </Link>
                 </div>
                 <button onClick={() => { logout(); navigate('/'); }} style={{
                   fontSize: 13, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer',
