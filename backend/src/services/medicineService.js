@@ -18,18 +18,19 @@ const searchMedicines = async (query) => {
   // DB에 없으면 식약처 API 호출
   if (!process.env.MFDS_API_KEY) throw Object.assign(new Error('식약처 API 설정이 누락되었습니다.'), { status: 503 });
 
-  const response = await axios.get(MFDS_URL, {
-    params: {
-      serviceKey: process.env.MFDS_API_KEY,
-      itemName: query,
-      numOfRows: 20,
-      pageNo: 1,
-      type: 'json',
-    },
-  });
+  // serviceKey는 이미 인코딩된 값이므로 axios params에 직접 넣으면 이중 인코딩됨 — URL 직접 조립
+  const url = `${MFDS_URL}?serviceKey=${process.env.MFDS_API_KEY}&itemName=${encodeURIComponent(query)}&numOfRows=20&pageNo=1&type=json`;
+  const response = await axios.get(url);
 
-  const items = response.data?.body?.items;
-  if (!items || items.length === 0) return [];
+  console.log('[MFDS] 검색어:', query);
+  console.log('[MFDS] 응답 구조:', JSON.stringify(response.data).slice(0, 300));
+
+  // 공공 API는 응답 루트가 response 래퍼 있는 경우와 없는 경우 혼재
+  const body = response.data?.response?.body ?? response.data?.body;
+  const rawItems = body?.items;
+  // 결과 없을 때 items가 빈 문자열로 오는 경우 처리
+  const items = Array.isArray(rawItems) ? rawItems : [];
+  if (items.length === 0) return [];
 
   // 식약처 응답 필드를 내부 스키마로 변환
   const medicines = items.map((item) => ({
