@@ -65,7 +65,7 @@ const sync = async (req, res, next) => {
 
     publicPharmacyService.syncFromPublicApi({ siNm, sigunguNm })
       .then((result) => console.log(`[sync] ${siNm} ${sigunguNm || ''}: ${result.synced}개 완료`))
-      .catch((err) => console.error('[sync] 오류:', err.message));
+      .catch((err) => console.error('[sync] 오류:', err.message, err.response?.data));
   } catch (err) {
     next(err);
   }

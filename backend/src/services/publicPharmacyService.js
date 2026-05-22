@@ -132,6 +132,7 @@ const syncFromPublicApi = async ({ siNm, sigunguNm }) => {
         pageNo,
         _type: 'json',
       },
+      timeout: 20000,
     });
 
     const body = response.data?.response?.body;
