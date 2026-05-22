@@ -172,14 +172,12 @@ export default function HomePage() {
                         )}
                       </div>
                     </div>
-                    {med.db_id && (
-                      <button
-                        onClick={() => navigate(`/medicines/search?q=${encodeURIComponent(med.name)}`)}
-                        style={{ fontSize: 13, color: '#059669', background: '#ecfdf5', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}
-                      >
-                        종류 보기 →
-                      </button>
-                    )}
+                    <button
+                      onClick={() => navigate(`/medicines/search?q=${encodeURIComponent(med.name)}`)}
+                      style={{ fontSize: 13, color: '#059669', background: '#ecfdf5', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}
+                    >
+                      종류 보기 →
+                    </button>
                   </div>
 
                   {/* 추천 이유 */}
