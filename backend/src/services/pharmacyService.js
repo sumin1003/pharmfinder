@@ -127,8 +127,7 @@ const sendAlertIfNeeded = async (pharmacyId, medicineId, quantity, minQuantity) 
       .select('id')
       .eq('pharmacy_id', pharmacyId)
       .eq('medicine_id', medicineId)
-      .gte('alerted_at', `${today}T00:00:00.000Z`)
-      .lt('alerted_at', `${today}T23:59:59.999Z`)
+      .eq('alert_date', today)
       .maybeSingle();
 
     if (existing) return;
@@ -160,7 +159,7 @@ const sendAlertIfNeeded = async (pharmacyId, medicineId, quantity, minQuantity) 
     // 알림 발송 기록 저장
     await supabase
       .from('inventory_alerts')
-      .insert({ pharmacy_id: pharmacyId, medicine_id: medicineId });
+      .insert({ pharmacy_id: pharmacyId, medicine_id: medicineId, alert_date: today });
   } catch (alertErr) {
     console.error('[pharmacyService] 재고 부족 알림 발송 실패:', alertErr.message);
   }

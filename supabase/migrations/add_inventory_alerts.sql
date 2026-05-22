@@ -5,8 +5,7 @@ CREATE TABLE IF NOT EXISTS inventory_alerts (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   pharmacy_id  INTEGER NOT NULL REFERENCES pharmacies(id) ON DELETE CASCADE,
   medicine_id  INTEGER NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
-  alerted_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  alert_date   DATE NOT NULL DEFAULT CURRENT_DATE,
+  alerted_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (pharmacy_id, medicine_id, alert_date)
 );
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_inventory_alerts_daily
-  ON inventory_alerts (pharmacy_id, medicine_id, (alerted_at::date));
