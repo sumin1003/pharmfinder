@@ -114,9 +114,11 @@ const searchPublicPharmacies = async (query) => {
 
 // HIRA API에서 지역별 약국 목록을 가져와 public_pharmacies에 upsert
 const syncFromPublicApi = async ({ siNm, sigunguNm }) => {
+  console.log('[sync] 시작:', siNm, sigunguNm);
   if (!process.env.HIRA_API_KEY) {
     throw Object.assign(new Error('HIRA API 키가 설정되지 않았습니다.'), { status: 503 });
   }
+  console.log('[sync] API 키 확인, HIRA 호출 시작');
 
   const PAGE_SIZE = 100;
   let pageNo = 1;
@@ -149,6 +151,7 @@ const syncFromPublicApi = async ({ siNm, sigunguNm }) => {
     pageNo++;
   }
 
+  console.log('[sync] HIRA 응답 수신:', allItems.length, '개');
   if (allItems.length === 0) return { synced: 0 };
 
   const now = new Date().toISOString();
