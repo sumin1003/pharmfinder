@@ -19,6 +19,10 @@ export default function PharmacyDashboard() {
   const [linkResults, setLinkResults] = useState([]);
   const [linkLoading, setLinkLoading] = useState(false);
   const [linkMsg, setLinkMsg] = useState('');
+  // CSV 일괄 업로드
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [csvResult, setCsvResult] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -136,6 +140,31 @@ export default function PharmacyDashboard() {
       setSaveError(err.response?.data?.message || '저장에 실패했습니다.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // CSV 파일로 재고 일괄 등록 처리
+  const handleCsvUpload = async (e) => {
+    e.preventDefault();
+    if (!csvFile) return;
+    setCsvLoading(true);
+    setCsvResult(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', csvFile);
+      const res = await api.post('/pharmacies/inventory/csv', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setCsvResult(res.data);
+      // 업로드 성공 시 재고 목록 새로고침
+      const pharmRes = await api.get('/pharmacies/my/info');
+      const invRes = await api.get(`/pharmacies/${pharmRes.data.id}/inventory`);
+      setInventory(invRes.data);
+      setCsvFile(null);
+    } catch (err) {
+      setCsvResult({ error: err.response?.data?.message || 'CSV 업로드에 실패했습니다.' });
+    } finally {
+      setCsvLoading(false);
     }
   };
 
@@ -345,6 +374,46 @@ export default function PharmacyDashboard() {
               등록
             </button>
           </form>
+        )}
+      </div>
+
+      {/* CSV 재고 일괄 업로드 */}
+      <div style={{ background: 'white', borderRadius: 16, border: '1px solid #e2e8f0', padding: 20, marginBottom: 16 }}>
+        <h3 style={{ fontWeight: 600, color: '#0f172a', marginBottom: 12, fontSize: 15 }}>CSV 재고 일괄 업로드</h3>
+        <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>
+          형식: <code>약품명,수량,최소수량</code> (첫 줄은 헤더)
+        </p>
+        <form onSubmit={handleCsvUpload} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            type="file"
+            accept=".csv"
+            onChange={(e) => setCsvFile(e.target.files[0])}
+            style={{ fontSize: 13, flex: 1, minWidth: 0 }}
+          />
+          <button
+            type="submit"
+            disabled={!csvFile || csvLoading}
+            style={{
+              padding: '8px 16px', background: '#10b981', color: 'white', border: 'none',
+              borderRadius: 8, fontSize: 13, cursor: csvFile && !csvLoading ? 'pointer' : 'not-allowed',
+              opacity: csvFile && !csvLoading ? 1 : 0.5, whiteSpace: 'nowrap',
+            }}
+          >
+            {csvLoading ? '업로드 중...' : '업로드'}
+          </button>
+        </form>
+        {csvResult && !csvResult.error && (
+          <div style={{ marginTop: 10, fontSize: 13 }}>
+            <span style={{ color: '#16a34a', fontWeight: 500 }}>✓ {csvResult.success}개 등록 완료</span>
+            {csvResult.failed?.length > 0 && (
+              <div style={{ color: '#dc2626', marginTop: 4 }}>
+                실패: {csvResult.failed.map((f) => `${f.name}(${f.reason})`).join(', ')}
+              </div>
+            )}
+          </div>
+        )}
+        {csvResult?.error && (
+          <p style={{ marginTop: 10, fontSize: 13, color: '#dc2626' }}>{csvResult.error}</p>
         )}
       </div>
 

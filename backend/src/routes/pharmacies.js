@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const pharmacyController = require('../controllers/pharmacyController');
 const publicPharmacyController = require('../controllers/publicPharmacyController');
 const { authenticate, authorize, requireApprovedPharmacy } = require('../middleware/auth');
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 1024 * 1024 } }); // 1MB 제한
 
 // Public
 // 현재 위치 기준 근처 약국 목록 조회
@@ -32,6 +35,8 @@ router.get('/my/favorites',    authenticate, pharmacyController.getFavorites);
 router.post('/:id/favorite',   authenticate, pharmacyController.toggleFavorite);
 
 // 승인된 약국만
+// CSV 파일로 재고 일괄 등록
+router.post('/inventory/csv',         authenticate, authorize('pharmacy'), requireApprovedPharmacy, upload.single('file'), pharmacyController.uploadInventoryCsv);
 // 재고 추가 (upsert)
 router.post('/inventory',             authenticate, authorize('pharmacy'), requireApprovedPharmacy, pharmacyController.addInventory);
 // 특정 재고 항목 수정

@@ -153,9 +153,37 @@ const getFavorites = async (req, res, next) => {
   }
 };
 
+/**
+ * POST /api/pharmacies/inventory/csv
+ * 인증: 필요 (pharmacy, approved)
+ * CSV 파일로 재고를 일괄 등록한다. 형식: 약품명,수량,최소수량 (헤더 첫 줄 제외)
+ */
+const uploadInventoryCsv = async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'CSV 파일이 필요합니다.' });
+
+    const text = req.file.buffer.toString('utf-8');
+    const lines = text.split('\n').filter(Boolean);
+    // 첫 줄(헤더) 제거
+    const dataLines = lines.slice(1);
+
+    const rows = dataLines.map((line) => {
+      const [name, quantity, minQuantity] = line.split(',').map((s) => s.trim());
+      return { name, quantity: parseInt(quantity, 10), minQuantity: minQuantity ? parseInt(minQuantity, 10) : 10 };
+    }).filter((r) => r.name && !isNaN(r.quantity));
+
+    if (rows.length === 0) return res.status(400).json({ message: 'CSV에 유효한 데이터가 없습니다.' });
+
+    const result = await pharmacyService.bulkUpsertInventory(req.pharmacy.id, rows);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getNearby, getById, getInventory,
   getMyPharmacy, updateMyPharmacy,
-  addInventory, updateInventory, deleteInventory,
+  addInventory, updateInventory, deleteInventory, uploadInventoryCsv,
   toggleFavorite, getFavorites,
 };

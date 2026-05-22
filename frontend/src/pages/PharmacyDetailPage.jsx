@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import { isOpenNow } from '../utils/businessHours';
 
 // 약국 상세 페이지 — 약국 기본 정보와 재고 목록을 함께 불러와 품절·부족 상태를 시각적으로 표시
 export default function PharmacyDetailPage() {
@@ -96,6 +97,21 @@ export default function PharmacyDetailPage() {
                   <span>📞</span>{pharmacy.phone}
                 </p>
               )}
+              {pharmacy.business_hours && (() => {
+                const open = isOpenNow(pharmacy.business_hours);
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                    <span style={{
+                      fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
+                      background: open ? '#dcfce7' : '#f1f5f9',
+                      color: open ? '#16a34a' : '#64748b',
+                    }}>
+                      {open ? '영업 중' : '영업 종료'}
+                    </span>
+                    <span style={{ fontSize: 13, color: '#64748b' }}>{pharmacy.business_hours}</span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>

@@ -1,5 +1,6 @@
 const axios = require('axios');
 const supabase = require('../config/supabase');
+const notificationService = require('./notificationService');
 
 // Haversine 공식으로 두 좌표 사이의 거리를 km 단위로 계산
 const getDistance = (lat1, lng1, lat2, lng2) => {
@@ -114,6 +115,57 @@ const getInventory = async (pharmacyId) => {
   return data;
 };
 
+// 재고 부족 알림 발송 — 오늘 이미 발송된 경우 건너뜀 (중복 방지)
+const sendAlertIfNeeded = async (pharmacyId, medicineId, quantity, minQuantity) => {
+  if (quantity > minQuantity) return;
+
+  try {
+    // 오늘 날짜로 이미 발송된 알림이 있는지 확인
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: existing } = await supabase
+      .from('inventory_alerts')
+      .select('id')
+      .eq('pharmacy_id', pharmacyId)
+      .eq('medicine_id', medicineId)
+      .gte('alerted_at', `${today}T00:00:00.000Z`)
+      .lt('alerted_at', `${today}T23:59:59.999Z`)
+      .maybeSingle();
+
+    if (existing) return;
+
+    // 약국 담당자 이메일 조회 (pharmacies → users 조인)
+    const { data: pharmacy } = await supabase
+      .from('pharmacies')
+      .select('name, users(email)')
+      .eq('id', pharmacyId)
+      .single();
+
+    // 약품명 조회
+    const { data: medicine } = await supabase
+      .from('medicines')
+      .select('name')
+      .eq('id', medicineId)
+      .single();
+
+    if (!pharmacy || !medicine) return;
+
+    await notificationService.sendLowStockAlert({
+      pharmacyEmail: pharmacy.users?.email,
+      pharmacyName: pharmacy.name,
+      medicineName: medicine.name,
+      quantity,
+      minQuantity,
+    });
+
+    // 알림 발송 기록 저장
+    await supabase
+      .from('inventory_alerts')
+      .insert({ pharmacy_id: pharmacyId, medicine_id: medicineId });
+  } catch (alertErr) {
+    console.error('[pharmacyService] 재고 부족 알림 발송 실패:', alertErr.message);
+  }
+};
+
 // 약국 재고에 의약품을 추가하거나 기존 항목을 덮어씀 (medicine_id 기준 upsert)
 const addInventory = async (pharmacyId, { medicineId, quantity, minQuantity = 10 }) => {
   const { data, error } = await supabase
@@ -123,6 +175,10 @@ const addInventory = async (pharmacyId, { medicineId, quantity, minQuantity = 10
     .single();
 
   if (error) throw error;
+
+  // 재고 부족 시 알림 발송 (실패해도 에러 전파 안 함)
+  await sendAlertIfNeeded(pharmacyId, medicineId, quantity, minQuantity);
+
   return data;
 };
 
@@ -142,7 +198,49 @@ const updateInventory = async (inventoryId, pharmacyId, { quantity, minQuantity 
     .single();
 
   if (error || !data) throw Object.assign(new Error('재고를 찾을 수 없습니다.'), { status: 404 });
+
+  // 수량이 수정됐고 재고 부족 상태이면 알림 발송 (실패해도 에러 전파 안 함)
+  if (quantity !== undefined) {
+    const effectiveMin = minQuantity !== undefined ? minQuantity : data.min_quantity;
+    await sendAlertIfNeeded(pharmacyId, data.medicine_id, quantity, effectiveMin);
+  }
+
   return data;
+};
+
+// CSV 업로드용 재고 일괄 등록 — 약품명 완전 일치 검색 후 upsert, 미매칭 항목은 failed 목록으로 반환
+const bulkUpsertInventory = async (pharmacyId, rows) => {
+  let success = 0;
+  const failed = [];
+
+  for (const row of rows) {
+    const { name, quantity, minQuantity = 10 } = row;
+
+    // 약품명 완전 일치 검색
+    const { data: medicine, error: medError } = await supabase
+      .from('medicines')
+      .select('id')
+      .eq('name', name)
+      .maybeSingle();
+
+    if (medError || !medicine) {
+      failed.push({ name, reason: '등록된 약품을 찾을 수 없습니다.' });
+      continue;
+    }
+
+    const { error: upsertError } = await supabase
+      .from('pharmacy_inventory')
+      .upsert({ pharmacy_id: pharmacyId, medicine_id: medicine.id, quantity, min_quantity: minQuantity });
+
+    if (upsertError) {
+      failed.push({ name, reason: '재고 등록에 실패했습니다.' });
+      continue;
+    }
+
+    success++;
+  }
+
+  return { success, failed };
 };
 
 // 특정 재고 항목을 삭제 (해당 약국 소유 여부 검증 포함)
@@ -188,6 +286,6 @@ const getFavorites = async (userId) => {
 module.exports = {
   geocodeAddress,
   getNearbyPharmacies, getPharmacyById, getMyPharmacy, updateMyPharmacy,
-  getInventory, addInventory, updateInventory, deleteInventory,
+  getInventory, addInventory, updateInventory, bulkUpsertInventory, deleteInventory,
   toggleFavorite, getFavorites,
 };
