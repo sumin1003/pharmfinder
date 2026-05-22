@@ -23,6 +23,8 @@ app.use(cors({
     callback(Object.assign(new Error('CORS 정책에 의해 차단됐습니다.'), { status: 403 }));
   },
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 }));
 // HTTP 요청 로깅
 app.use(morgan('dev'));
