@@ -18,15 +18,34 @@ const searchMedicines = async (query) => {
   // DB에 없으면 식약처 API 호출
   if (!process.env.MFDS_API_KEY) throw Object.assign(new Error('식약처 API 설정이 누락되었습니다.'), { status: 503 });
 
-  // serviceKey는 이미 인코딩된 값이므로 axios params에 직접 넣으면 이중 인코딩됨 — URL 직접 조립
-  const url = `${MFDS_URL}?serviceKey=${process.env.MFDS_API_KEY}&itemName=${encodeURIComponent(query)}&numOfRows=20&pageNo=1&type=json`;
-  const response = await axios.get(url);
+  // URLSearchParams 사용: serviceKey를 항상 encodeURIComponent로 처리 (디코딩된 키 기준)
+  const params = new URLSearchParams({
+    serviceKey: process.env.MFDS_API_KEY,
+    itemName: query,
+    numOfRows: '20',
+    pageNo: '1',
+    type: 'json',
+  });
+  const response = await axios.get(`${MFDS_URL}?${params.toString()}`);
 
   console.log('[MFDS] 검색어:', query);
-  console.log('[MFDS] 응답 구조:', JSON.stringify(response.data).slice(0, 300));
+  console.log('[MFDS] 응답 원문:', JSON.stringify(response.data).slice(0, 400));
+
+  // XML 오류 응답 감지 (인증키 문제 시 JSON 대신 XML 반환)
+  if (typeof response.data === 'string') {
+    console.error('[MFDS] XML 응답 수신 — 서비스키 오류 또는 미등록 서비스');
+    throw Object.assign(new Error('식약처 API 인증 실패. 서비스키를 확인하세요.'), { status: 502 });
+  }
 
   // 공공 API는 응답 루트가 response 래퍼 있는 경우와 없는 경우 혼재
+  const header = response.data?.response?.header ?? response.data?.header;
   const body = response.data?.response?.body ?? response.data?.body;
+
+  if (header?.resultCode && header.resultCode !== '00') {
+    console.error('[MFDS] API 오류:', header.resultCode, header.resultMsg);
+    throw Object.assign(new Error(`식약처 API 오류: ${header.resultMsg || header.resultCode}`), { status: 502 });
+  }
+
   const rawItems = body?.items;
   // 결과 없을 때 items가 빈 문자열로 오는 경우 처리
   const items = Array.isArray(rawItems) ? rawItems : [];
