@@ -61,33 +61,57 @@ const getMedicineById = async (id) => {
   return data;
 };
 
+// 증상 키워드로 DB에서 관련 약품을 최대 30개 조회 (RAG 컨텍스트용)
+const fetchContextMedicines = async (symptom) => {
+  const { data } = await supabase
+    .from('medicines')
+    .select('id, name, category, efficacy')
+    .or(`name.ilike.%${symptom}%,efficacy.ilike.%${symptom}%,category.ilike.%${symptom}%`)
+    .limit(30);
+  return data || [];
+};
+
+// 추천 약품명을 DB에서 조회하여 db_id를 부착 (exact match → ilike fallback)
+const attachDbIds = async (medicines) => {
+  for (const med of medicines) {
+    const { data: exact } = await supabase
+      .from('medicines').select('id').eq('name', med.name).maybeSingle();
+    if (exact) { med.db_id = exact.id; continue; }
+
+    const { data: fuzzy } = await supabase
+      .from('medicines').select('id').ilike('name', `%${med.name}%`).limit(1);
+    med.db_id = fuzzy?.[0]?.id ?? null;
+  }
+};
+
 // Groq LLM을 이용해 증상에 맞는 일반의약품 3가지를 JSON으로 추천
+// DB에 관련 약품이 있으면 컨텍스트로 주입하여 실제 등록 약품 우선 추천
 const recommendBySymptom = async (symptom) => {
   if (!process.env.GROQ_API_KEY) throw Object.assign(new Error('AI 추천 서비스가 준비되지 않았습니다.'), { status: 503 });
 
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+  const contextMedicines = await fetchContextMedicines(symptom);
+
+  const contextBlock = contextMedicines.length > 0
+    ? `\nPharmFinder에 등록된 관련 의약품 목록 (이 중에서 우선 추천하세요):\n${
+        contextMedicines.map((m) => `- ${m.name}${m.category ? ` (${m.category})` : ''}${m.efficacy ? `: ${m.efficacy.slice(0, 60)}` : ''}`).join('\n')
+      }\n`
+    : '';
+
+  const systemPrompt = `당신은 약학 전문가입니다. 사용자의 증상을 듣고 적합한 한국 일반의약품을 JSON 형식으로만 추천합니다.
+${contextBlock}
+규칙:
+1. 위 목록에 적합한 약이 있으면 목록에서 우선 추천하세요.
+2. 목록에 없거나 부족하면 일반적인 일반의약품으로 보완해도 됩니다.
+3. 증상과 무관한 질환을 원인으로 단정하지 마세요.
+4. 처방전이 필요한 전문의약품은 제외하세요.
+5. 반드시 JSON 형식으로만 답하세요.`;
+
   const completion = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [
-      {
-        role: 'system',
-        content: `당신은 약학 전문가입니다. 사용자의 증상을 듣고 적합한 한국 일반의약품을 JSON 형식으로만 추천합니다.
-
-증상별 약물 카테고리 기준:
-- 재채기·콧물·코막힘·알레르기 → 항히스타민제 (세티리진, 로라타딘, 클로르페니라민 등)
-- 기침·가래 → 진해거담제 (덱스트로메토르판, 암브록솔 등)
-- 두통·발열·근육통 → 해열진통제 (아세트아미노펜, 이부프로펜 등)
-- 소화불량·속쓰림·메스꺼움 → 소화제·제산제 (돔페리돈, 시메티딘 등)
-- 설사 → 지사제 (로페라미드 등)
-- 눈 가려움·충혈 → 안약 항히스타민제
-
-규칙:
-1. 증상에 맞는 카테고리의 약만 추천하세요.
-2. 증상과 무관한 질환을 원인으로 단정하지 마세요.
-3. 처방전이 필요한 전문의약품은 제외하세요.
-4. 반드시 JSON 형식으로만 답하세요.`,
-      },
+      { role: 'system', content: systemPrompt },
       {
         role: 'user',
         content: `다음 증상에 적합한 일반의약품을 추천해주세요. 반드시 JSON 형식으로만 답하세요.
@@ -116,11 +140,17 @@ const recommendBySymptom = async (symptom) => {
     max_tokens: 1024,
   });
 
-  // LLM 응답에서 JSON 블록만 추출하여 파싱
   const text = completion.choices[0]?.message?.content || '';
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('AI 응답 파싱 실패');
-  return JSON.parse(jsonMatch[0]);
+  const result = JSON.parse(jsonMatch[0]);
+
+  // 추천 결과에 DB id 부착 (실패해도 에러 전파 안 함)
+  if (result.medicines?.length) {
+    await attachDbIds(result.medicines).catch(() => {});
+  }
+
+  return result;
 };
 
 module.exports = { searchMedicines, getMedicineById, recommendBySymptom };

@@ -163,13 +163,24 @@ export default function HomePage() {
                         borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 13, fontWeight: 700, flexShrink: 0,
                       }}>{i + 1}</span>
-                      <span style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>{med.name}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>{med.name}</span>
+                        {med.db_id && (
+                          <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>
+                            DB 등록
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <button
-                      onClick={() => navigate(`/medicines/search?q=${encodeURIComponent(med.name)}`)}
+                      onClick={() =>
+                        med.db_id
+                          ? navigate(`/medicines/${med.db_id}`)
+                          : navigate(`/medicines/search?q=${encodeURIComponent(med.name)}`)
+                      }
                       style={{ fontSize: 13, color: '#059669', background: '#ecfdf5', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}
                     >
-                      종류 보기 →
+                      {med.db_id ? '상세 보기 →' : '종류 보기 →'}
                     </button>
                   </div>
 
