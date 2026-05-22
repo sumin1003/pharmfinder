@@ -1,6 +1,6 @@
 # PharmFinder — 작업 계획서
 
-> 갱신일: 2026-05-23
+> 갱신일: 2026-05-22
 > 기준: CLAUDE.md + 코드베이스 직접 분석 (SPEC.md 없음)
 
 ---
@@ -22,11 +22,11 @@
 | 비밀번호 변경 (로그인 상태) | ✅ | ✅ | PUT /api/auth/password, ResetPasswordPage, ProfilePage 링크 연결 |
 | 의약품 이름 검색 | ✅ | ✅ | DB 우선 → 식약처 API 폴백, 결과 캐싱 |
 | 의약품 상세 조회 | ✅ | ✅ | MedicineDetailPage |
-| AI 증상 기반 약품 추천 | ✅ | ✅ | Groq LLaMA-3.3-70b, POST /api/medicines/recommend |
+| AI 증상 기반 약품 추천 (RAG-lite) | ✅ | ✅ | Groq LLaMA-3.3-70b, DB 컨텍스트 주입, db_id 부착, INN 일반명 강제 |
 | 약국 지도 — 카카오 로컬 API 실시간 | ✅ | ✅ | GET /api/pharmacies/public/nearby, PM9 카테고리, 3색 마커 |
 | 공공약국 상세 페이지 | ✅ | ✅ | /pharmacies/public/:id, 비가입/가입 분기 |
 | 가입 약국 상세 + 재고 | ✅ | ✅ | PharmacyDetailPage, 품절·부족 배지 |
-| 영업시간 표시 + 영업 중/종료 배지 | ✅ | ✅ | isOpenNow() 유틸, PharmacyDetailPage |
+| 영업시간 표시 + 영업 중/종료 배지 | ✅ | ✅ | isOpenNow() 유틸, PharmacyDetailPage + 지도 사이드바·팝업 |
 | 공공데이터 약국 검색 | ✅ | ✅ | GET /api/pharmacies/public/search (연결 선택용) |
 | 공공데이터 약국 동기화 (Admin) | ✅ | ✅ | POST /api/pharmacies/public/sync, HIRA API |
 | 약국-공공데이터 자가 연결 | ✅ | ✅ | PUT /api/pharmacies/public/self/link, 약국 대시보드 |
@@ -67,6 +67,12 @@
 | 약국 승인/거절 이메일 알림 | ✅ 완료 | notificationService + adminService 연동 |
 | 공공약국 자동 주기 동기화 | ✅ 완료 | node-cron, server.js 등록 |
 | 비밀번호 재설정 페이지 (로그인 상태) | ✅ 완료 | ResetPasswordPage.jsx + ProfilePage 링크 |
+| 지도 영업시간 표시 | ✅ 완료 | publicPharmacyService에 business_hours 조인, 사이드바·팝업 배지 |
+| CSV 재고 유사 검색 | ✅ 완료 | bulkUpsertInventory ilike fallback, fuzzy 카운트 반환 |
+| AI 추천 RAG-lite | ✅ 완료 | fetchContextMedicines DB 컨텍스트 주입, attachDbIds, db_id 부착 |
+| AI 추천 약품명 INN 강제 | ✅ 완료 | 시스템 프롬프트 규칙 6 추가, 이브프로펜→이부프로펜 교정 예시 포함 |
+| 공공약국 상세 페이지 404 수정 | ✅ 완료 | React Router state로 데이터 전달, API 호출 제거 |
+| 식약처 MFDS API URL 환경변수 제거 | ✅ 완료 | URL 코드 고정, URLSearchParams 인코딩 |
 
 ---
 
@@ -76,12 +82,11 @@
 > 현재 운영·데이터 누락 이슈 없음
 
 ### P2 — 중요 (핵심 UX·기능 완성도)
-- [ ] 지도 팝업 영업시간 — 카카오 데이터에 없으므로 HIRA DB 데이터로 보완 또는 생략 결정 필요
+> 현재 완료 항목 없음
 
 ### P3 — 개선 (편의·polish)
-- [ ] CSV 재고 업로드 유사 검색 — 완전 일치 대신 ilike 옵션 추가
 - [ ] Supabase RLS 정책 적용 — service_role 의존 제거
-- [ ] 영업 중/종료 지도 마커 색상 — 영업시간 데이터 확보 후 구현 가능
+- [ ] 영업 중/종료 지도 마커 색상 — 가입 약국 한정으로 부분 구현됨, 카카오 API 약국은 영업시간 정보 없음
 
 ---
 

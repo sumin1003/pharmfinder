@@ -1,7 +1,7 @@
 # Design: 현재 추가된 모든 기능
 
-> 생성일: 2026-05-19
-> 기준: 코드베이스 직접 분석 — DESIGN_추가된 전체기능.md 갱신본 (즐겨찾기 목록 페이지, AI 추천 UX 개선 반영)
+> 생성일: 2026-05-19 / 최종 갱신: 2026-05-22
+> 기준: 코드베이스 직접 분석 — RAG-lite AI 추천, 공공약국 상세, MFDS API 수정 반영
 
 ---
 
@@ -52,12 +52,22 @@ Response 200: { "id", "email", "name", "role", "created_at" }
 ```
 GET /api/medicines/search?q=타이레놀
 Response 200: [ { "id", "name", "category", "efficacy", ... } ]
+// DB 우선 검색 → 없으면 식약처(MFDS) getDrbEasyDrugInfoService 폴백 → 결과 DB 캐싱
 
 POST /api/medicines/recommend
 Request:  { "symptom": "두통, 발열" }
 Response 200: {
   "summary": "...",
-  "medicines": [ { "name", "reason", "usage", "caution", "side_effects" } ],
+  "medicines": [
+    {
+      "name": "아세트아미노펜",   // 식약처 등재 한국어 INN 강제
+      "reason": "...",
+      "usage": "...",
+      "caution": "...",
+      "side_effects": "...",
+      "db_id": "uuid-or-null"    // DB 등록 약품이면 UUID, 없으면 null
+    }
+  ],
   "advice": "..."
 }
 
@@ -65,12 +75,53 @@ GET /api/medicines/123
 Response 200: { "id", "name", "category", "efficacy", "usage", "precautions", "side_effects" }
 ```
 
+#### AI 추천 내부 흐름 (RAG-lite)
+
+```
+POST /api/medicines/recommend { symptom }
+  1. fetchContextMedicines(symptom)
+       → medicines 테이블에서 name·efficacy·category ilike 검색 (최대 30개)
+  2. 컨텍스트 블록 조립
+       → "PharmFinder에 등록된 관련 의약품 목록" 형식으로 시스템 프롬프트에 주입
+  3. Groq LLaMA-3.3-70b-versatile 호출
+       → temperature 0.2, max_tokens 1024
+       → 규칙: DB 목록 우선 추천 / 일반의약품만 / INN 일반명 사용 / JSON only
+  4. JSON 파싱 후 attachDbIds(medicines)
+       → 추천 약품명을 exact match → ilike fallback 순으로 DB 역조회
+       → 매칭되면 db_id(UUID) 부착, 없으면 null
+  5. 결과 반환 (db_id 포함)
+```
+
+**프론트 연동 (HomePage.jsx):**
+- `db_id` 있는 약품: "DB 등록" 뱃지 표시 + "종류 보기 →" → `/medicines/search?q=약품명`
+- `db_id` 없는 약품: 뱃지 없음 + "종류 보기 →" → `/medicines/search?q=약품명` (MFDS 폴백 검색)
+
+---
+
+### 2-2b. 의약품 검색 — MFDS API 폴백 상세
+
+| 단계 | 동작 |
+|------|------|
+| 1 | Supabase `medicines` 테이블 ilike 검색 |
+| 2 | 결과 있으면 즉시 반환 |
+| 3 | 없으면 MFDS `getDrbEasyDrugInfoService/getDrbEasyDrugList` 호출 |
+| 4 | `URLSearchParams`로 serviceKey 인코딩 (decoded key 기준) |
+| 5 | 응답 `header.resultCode !== '00'` 이면 에러 throw |
+| 6 | 결과를 `medicines` 테이블에 upsert 캐싱 후 반환 |
+
 ---
 
 ### 2-3. 약국 (`/api/pharmacies`)
 
 | 메서드 | 경로 | 인증 | 역할 | 설명 |
 |--------|------|------|------|------|
+| GET    | `/api/pharmacies/public/nearby?lat=&lng=&radius=&medicineId=` | 불필요 | - | 카카오 API 기반 근처 약국 (is_registered·has_inventory·business_hours 포함) |
+| GET    | `/api/pharmacies/public/search?q=` | 불필요 | - | 공공약국 이름 검색 (연결 선택용) |
+| GET    | `/api/pharmacies/public/:id` | 불필요 | - | 공공약국 단건 조회 (연결된 가입 약국 재고 포함) |
+| PUT    | `/api/pharmacies/public/self/link` | 필요 | pharmacy(승인) | 자기 약국 공공데이터 연결 |
+| POST   | `/api/pharmacies/public/sync` | 필요 | admin | HIRA API 지역별 동기화 |
+| PUT    | `/api/pharmacies/public/:id/link` | 필요 | admin | 관리자 수동 연결 |
+| DELETE | `/api/pharmacies/public/:id/link` | 필요 | admin | 관리자 연결 해제 |
 | GET    | `/api/pharmacies/nearby?lat=&lng=&radius=&medicineId=` | 불필요 | - | 근처 약국 목록 (거리순) |
 | GET    | `/api/pharmacies/:id` | 불필요 | - | 약국 상세 조회 |
 | GET    | `/api/pharmacies/:id/inventory` | 불필요 | - | 약국 재고 목록 |
