@@ -120,36 +120,24 @@ const syncFromPublicApi = async ({ siNm, sigunguNm }) => {
   }
   console.log('[sync] API 키 확인, HIRA 호출 시작');
 
-  const PAGE_SIZE = 100;
-  let pageNo = 1;
-  let allItems = [];
+  // 1페이지(100개)만 가져와 Render 타임아웃 회피
+  const response = await axios.get(HIRA_URL, {
+    params: {
+      serviceKey: process.env.HIRA_API_KEY,
+      Q0: siNm,
+      Q1: sigunguNm || '',
+      numOfRows: 100,
+      pageNo: 1,
+      _type: 'json',
+    },
+    timeout: 15000,
+  });
 
-  while (true) {
-    const response = await axios.get(HIRA_URL, {
-      params: {
-        serviceKey: process.env.HIRA_API_KEY,
-        Q0: siNm,
-        Q1: sigunguNm || '',
-        numOfRows: PAGE_SIZE,
-        pageNo,
-        _type: 'json',
-      },
-      timeout: 20000,
-    });
+  console.log('[sync] HIRA 응답 상태:', response.status, JSON.stringify(response.data).substring(0, 300));
 
-    const body = response.data?.response?.body;
-    const totalCount = parseInt(body?.totalCount || '0', 10);
-    const rawItems = body?.items?.item;
-
-    if (!rawItems) break;
-
-    // 단일 결과는 객체로 오므로 배열로 통일
-    const items = Array.isArray(rawItems) ? rawItems : [rawItems];
-    allItems = allItems.concat(items);
-
-    if (allItems.length >= totalCount) break;
-    pageNo++;
-  }
+  const body = response.data?.response?.body;
+  const rawItems = body?.items?.item;
+  const allItems = rawItems ? (Array.isArray(rawItems) ? rawItems : [rawItems]) : [];
 
   console.log('[sync] HIRA 응답 수신:', allItems.length, '개');
   if (allItems.length === 0) return { synced: 0 };

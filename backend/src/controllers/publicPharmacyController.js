@@ -60,12 +60,8 @@ const sync = async (req, res, next) => {
     const { siNm, sigunguNm } = req.body;
     if (!siNm) return res.status(400).json({ message: '시도명(siNm)이 필요합니다.' });
 
-    // 즉시 응답 후 백그라운드에서 동기화 (Render 30초 타임아웃 회피)
-    res.json({ message: `${siNm} ${sigunguNm || ''} 동기화를 시작했습니다.` });
-
-    publicPharmacyService.syncFromPublicApi({ siNm, sigunguNm })
-      .then((result) => console.log(`[sync] ${siNm} ${sigunguNm || ''}: ${result.synced}개 완료`))
-      .catch((err) => console.error('[sync] 오류:', err.message, err.response?.data));
+    const result = await publicPharmacyService.syncFromPublicApi({ siNm, sigunguNm });
+    res.json({ message: `${result.synced}개 약국이 동기화됐습니다.`, synced: result.synced });
   } catch (err) {
     next(err);
   }
