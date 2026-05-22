@@ -114,11 +114,9 @@ const searchPublicPharmacies = async (query) => {
 
 // HIRA API에서 지역별 약국 목록을 가져와 public_pharmacies에 upsert
 const syncFromPublicApi = async ({ siNm, sigunguNm }) => {
-  console.log('[sync] 시작:', siNm, sigunguNm);
   if (!process.env.HIRA_API_KEY) {
     throw Object.assign(new Error('HIRA API 키가 설정되지 않았습니다.'), { status: 503 });
   }
-  console.log('[sync] API 키 확인, HIRA 호출 시작');
 
   // 1페이지(100개)만 가져와 Render 타임아웃 회피
   const response = await axios.get(HIRA_URL, {
@@ -133,24 +131,21 @@ const syncFromPublicApi = async ({ siNm, sigunguNm }) => {
     timeout: 15000,
   });
 
-  console.log('[sync] HIRA 응답 상태:', response.status, JSON.stringify(response.data).substring(0, 300));
-
   const body = response.data?.response?.body;
   const rawItems = body?.items?.item;
   const allItems = rawItems ? (Array.isArray(rawItems) ? rawItems : [rawItems]) : [];
 
   console.log('[sync] HIRA 응답 수신:', allItems.length, '개');
-  if (allItems.length > 0) console.log('[sync] 첫 항목 필드:', JSON.stringify(allItems[0]));
   if (allItems.length === 0) return { synced: 0 };
 
   const now = new Date().toISOString();
   const records = allItems.map((item) => ({
-    hpid: item.hpid,
-    name: item.dutyName,
-    address: item.dutyAddr || null,
-    phone: item.dutyTel1 || null,
-    latitude: item.wgs84Lat ? parseFloat(item.wgs84Lat) : null,
-    longitude: item.wgs84Lon ? parseFloat(item.wgs84Lon) : null,
+    hpid: item.ykiho,
+    name: item.yadmNm,
+    address: item.addr || null,
+    phone: item.telno || null,
+    latitude: item.YPos ? parseFloat(item.YPos) : null,
+    longitude: item.XPos ? parseFloat(item.XPos) : null,
     updated_at: now,
   }));
 
