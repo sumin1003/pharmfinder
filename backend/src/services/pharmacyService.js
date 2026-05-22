@@ -207,29 +207,47 @@ const updateInventory = async (inventoryId, pharmacyId, { quantity, minQuantity 
   return data;
 };
 
-// CSV 업로드용 재고 일괄 등록 — 약품명 완전 일치 검색 후 upsert, 미매칭 항목은 failed 목록으로 반환
+// CSV 업로드용 재고 일괄 등록 — 완전 일치 우선, 없으면 ilike 부분 일치 fallback
 const bulkUpsertInventory = async (pharmacyId, rows) => {
   let success = 0;
+  let fuzzy = 0;
   const failed = [];
 
   for (const row of rows) {
     const { name, quantity, minQuantity = 10 } = row;
 
-    // 약품명 완전 일치 검색
-    const { data: medicine, error: medError } = await supabase
+    // 1단계: 완전 일치
+    const { data: exactMed } = await supabase
       .from('medicines')
       .select('id')
       .eq('name', name)
       .maybeSingle();
 
-    if (medError || !medicine) {
+    let medicineId = exactMed?.id || null;
+    let matched = 'exact';
+
+    // 2단계: ilike 부분 일치 fallback
+    if (!medicineId) {
+      const { data: fuzzyMeds } = await supabase
+        .from('medicines')
+        .select('id')
+        .ilike('name', `%${name}%`)
+        .limit(1);
+
+      if (fuzzyMeds && fuzzyMeds.length > 0) {
+        medicineId = fuzzyMeds[0].id;
+        matched = 'fuzzy';
+      }
+    }
+
+    if (!medicineId) {
       failed.push({ name, reason: '등록된 약품을 찾을 수 없습니다.' });
       continue;
     }
 
     const { error: upsertError } = await supabase
       .from('pharmacy_inventory')
-      .upsert({ pharmacy_id: pharmacyId, medicine_id: medicine.id, quantity, min_quantity: minQuantity });
+      .upsert({ pharmacy_id: pharmacyId, medicine_id: medicineId, quantity, min_quantity: minQuantity });
 
     if (upsertError) {
       failed.push({ name, reason: '재고 등록에 실패했습니다.' });
@@ -237,9 +255,10 @@ const bulkUpsertInventory = async (pharmacyId, rows) => {
     }
 
     success++;
+    if (matched === 'fuzzy') fuzzy++;
   }
 
-  return { success, failed };
+  return { success, fuzzy, failed };
 };
 
 // 특정 재고 항목을 삭제 (해당 약국 소유 여부 검증 포함)

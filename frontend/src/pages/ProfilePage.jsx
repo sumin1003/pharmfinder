@@ -1,22 +1,19 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
-// 내 계정 페이지 — 기본 정보 수정 및 비밀번호 변경(이메일 계정 한정), pharmacy 역할이면 약국 정보도 수정
+// 내 계정 페이지 — 기본 정보 수정(pharmacy 역할이면 약국 정보 포함), 비밀번호 변경은 전용 페이지로 이동
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
 
   const [profileForm, setProfileForm] = useState({ name: '', email: '' });
   const [pharmacyForm, setPharmacyForm] = useState({ pharmacyName: '', address: '', phone: '' });
-  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', newPasswordConfirm: '' });
 
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState('');
   const [profileSuccess, setProfileSuccess] = useState('');
-
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   const [pageLoading, setPageLoading] = useState(true);
 
@@ -75,30 +72,6 @@ export default function ProfilePage() {
       setProfileError(err.response?.data?.message || '저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setProfileLoading(false);
-    }
-  };
-
-  // 비밀번호 변경 — 새 비밀번호 일치 여부 확인 후 서버에 전송
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
-    setPasswordError('');
-    setPasswordSuccess('');
-    if (passwordForm.newPassword !== passwordForm.newPasswordConfirm) {
-      setPasswordError('새 비밀번호가 일치하지 않습니다.');
-      return;
-    }
-    setPasswordLoading(true);
-    try {
-      await api.put('/auth/password', {
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
-      });
-      setPasswordSuccess('비밀번호가 성공적으로 변경되었습니다.');
-      setPasswordForm({ currentPassword: '', newPassword: '', newPasswordConfirm: '' });
-    } catch (err) {
-      setPasswordError(err.response?.data?.message || '비밀번호 변경에 실패했습니다. 다시 시도해주세요.');
-    } finally {
-      setPasswordLoading(false);
     }
   };
 
@@ -271,12 +244,17 @@ export default function ProfilePage() {
           </form>
         </div>
 
-        {/* 섹션 2: 비밀번호 변경 */}
-        <div style={{
-          background: 'white', borderRadius: 28, padding: '36px 32px',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.08)', border: '1px solid #f1f5f9',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+        {/* 섹션 2: 비밀번호 재설정 링크 */}
+        <button
+          onClick={() => navigate('/reset-password')}
+          style={{
+            width: '100%', background: 'white', borderRadius: 28,
+            padding: '28px 32px', boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
+            border: '1px solid #f1f5f9', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
               width: 40, height: 40,
               background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
@@ -286,101 +264,14 @@ export default function ProfilePage() {
               <span style={{ color: 'white', fontSize: 18 }}>🔒</span>
             </div>
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', margin: 0 }}>비밀번호 변경</h2>
-              <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, marginTop: 2 }}>현재 비밀번호를 확인한 후 새 비밀번호로 변경합니다.</p>
+              <p style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', margin: 0 }}>비밀번호 재설정</p>
+              <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, marginTop: 2 }}>
+                {user?.provider ? `${user.provider} 계정은 해당 서비스에서 관리합니다.` : '현재 비밀번호를 확인한 후 새 비밀번호로 변경합니다.'}
+              </p>
             </div>
           </div>
-
-          {/* 소셜 계정: 비밀번호 변경 불가 안내 */}
-          {user?.provider != null ? (
-            <div style={{
-              background: '#f8fafc', border: '1px solid #e2e8f0',
-              borderRadius: 12, padding: '16px 20px',
-              color: '#64748b', fontSize: 14, lineHeight: 1.7,
-            }}>
-              <strong style={{ color: '#334155' }}>{user.provider}</strong> 계정으로 로그인한 경우 비밀번호는 해당 서비스에서 관리합니다.
-            </div>
-          ) : (
-            <form onSubmit={handlePasswordSubmit}>
-              <div style={fieldWrapStyle}>
-                <label style={labelStyle}>현재 비밀번호</label>
-                <input
-                  type="password"
-                  required
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  placeholder="현재 비밀번호 입력"
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = '#6366f1'; e.target.style.background = 'white'; }}
-                  onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
-                />
-              </div>
-
-              <div style={fieldWrapStyle}>
-                <label style={labelStyle}>새 비밀번호</label>
-                <input
-                  type="password"
-                  required
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  placeholder="8자 이상 입력"
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = '#6366f1'; e.target.style.background = 'white'; }}
-                  onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
-                />
-              </div>
-
-              <div style={fieldWrapStyle}>
-                <label style={labelStyle}>새 비밀번호 확인</label>
-                <input
-                  type="password"
-                  required
-                  value={passwordForm.newPasswordConfirm}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, newPasswordConfirm: e.target.value })}
-                  placeholder="새 비밀번호 재입력"
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = '#6366f1'; e.target.style.background = 'white'; }}
-                  onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
-                />
-              </div>
-
-              {passwordError && (
-                <div style={{
-                  background: '#fef2f2', border: '1px solid #fecaca',
-                  borderRadius: 10, padding: '12px 16px',
-                  color: '#dc2626', fontSize: 13, marginBottom: 16,
-                }}>
-                  {passwordError}
-                </div>
-              )}
-
-              {passwordSuccess && (
-                <div style={{
-                  background: '#f0fdf4', border: '1px solid #bbf7d0',
-                  borderRadius: 10, padding: '12px 16px',
-                  color: '#16a34a', fontSize: 13, marginBottom: 16,
-                }}>
-                  {passwordSuccess}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={passwordLoading}
-                style={{
-                  width: '100%', padding: '14px',
-                  background: passwordLoading ? '#9ca3af' : 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                  color: 'white', border: 'none', borderRadius: 12,
-                  fontSize: 15, fontWeight: 600, cursor: passwordLoading ? 'not-allowed' : 'pointer',
-                  boxShadow: passwordLoading ? 'none' : '0 4px 16px rgba(99,102,241,0.35)',
-                  transition: 'opacity 0.15s',
-                }}
-              >
-                {passwordLoading ? '변경 중...' : '비밀번호 변경'}
-              </button>
-            </form>
-          )}
-        </div>
+          <span style={{ color: '#94a3b8', fontSize: 20 }}>→</span>
+        </button>
       </div>
     </div>
   );

@@ -19,6 +19,7 @@ import FavoritesPage from './pages/FavoritesPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import SocialSignupPage from './pages/SocialSignupPage';
 import ProfilePage from './pages/ProfilePage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // 앱 루트 — BrowserRouter·AuthProvider·Layout으로 감싸고 전체 라우트를 정의
 export default function App() {
@@ -41,6 +42,10 @@ export default function App() {
             <Route
               path="/profile"
               element={<PrivateRoute roles={['user', 'pharmacy', 'admin']}><ProfilePage /></PrivateRoute>}
+            />
+            <Route
+              path="/reset-password"
+              element={<PrivateRoute roles={['user', 'pharmacy', 'admin']}><ResetPasswordPage /></PrivateRoute>}
             />
             <Route
               path="/pharmacy/dashboard"

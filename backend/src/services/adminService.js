@@ -1,5 +1,6 @@
 const supabase = require('../config/supabase');
 const { geocodeAddress } = require('./pharmacyService');
+const { sendPharmacyStatusEmail } = require('./notificationService');
 
 // 승인 대기(pending) 상태의 약국 목록을 가입 신청 순으로 조회
 const getPendingPharmacies = async () => {
@@ -23,10 +24,21 @@ const updatePharmacyStatus = async (pharmacyId, status, reason = '') => {
     .from('pharmacies')
     .update(updates)
     .eq('id', pharmacyId)
-    .select()
+    .select('*, users(email)')
     .single();
 
   if (error || !data) throw Object.assign(new Error('약국을 찾을 수 없습니다.'), { status: 404 });
+
+  // approved / rejected 변경 시 담당자에게 이메일 발송 (실패해도 에러 전파 안 함)
+  if (status === 'approved' || status === 'rejected') {
+    sendPharmacyStatusEmail({
+      pharmacyEmail: data.users?.email,
+      pharmacyName: data.name,
+      status,
+      rejectionReason: reason,
+    }).catch((err) => console.error('[adminService] 승인 알림 이메일 발송 실패:', err.message));
+  }
+
   return data;
 };
 

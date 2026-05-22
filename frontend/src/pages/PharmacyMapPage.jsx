@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { isOpenNow } from '../utils/businessHours';
 
 // 마커 색상: 재고 관리 중(green) / 가입 약국(yellow) / 공공데이터만(gray)
 const MARKER_COLORS = {
@@ -178,7 +179,7 @@ export default function PharmacyMapPage() {
                 <h3 style={{ fontWeight: 500, color: '#0f172a', fontSize: 14 }}>{p.name}</h3>
               </div>
               <p style={{ fontSize: 12, color: '#64748b', marginBottom: 4, paddingLeft: 14 }}>{p.address}</p>
-              <div style={{ paddingLeft: 14, display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div style={{ paddingLeft: 14, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 {p.distance !== undefined && (
                   <span style={{ fontSize: 12, color: '#10b981' }}>{p.distance.toFixed(1)}km</span>
                 )}
@@ -187,6 +188,12 @@ export default function PharmacyMapPage() {
                 )}
                 {p.is_registered && !p.has_inventory && (
                   <span style={{ fontSize: 11, background: '#fef3c7', color: '#d97706', padding: '1px 6px', borderRadius: 999 }}>가입 약국</span>
+                )}
+                {p.business_hours && isOpenNow(p.business_hours) === true && (
+                  <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '1px 6px', borderRadius: 999 }}>영업 중</span>
+                )}
+                {p.business_hours && isOpenNow(p.business_hours) === false && (
+                  <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '1px 6px', borderRadius: 999 }}>영업 종료</span>
                 )}
               </div>
             </div>
@@ -230,7 +237,20 @@ export default function PharmacyMapPage() {
               <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 16, padding: 0 }}>✕</button>
             </div>
             <p style={{ fontSize: 14, color: '#64748b', marginBottom: 4 }}>{selected.address}</p>
-            {selected.phone && <p style={{ fontSize: 14, color: '#64748b', marginBottom: 12 }}>{selected.phone}</p>}
+            {selected.phone && <p style={{ fontSize: 14, color: '#64748b', marginBottom: 4 }}>{selected.phone}</p>}
+            {selected.business_hours && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                <span style={{ fontSize: 13, color: '#64748b' }}>{selected.business_hours}</span>
+                {isOpenNow(selected.business_hours) === true && (
+                  <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 중</span>
+                )}
+                {isOpenNow(selected.business_hours) === false && (
+                  <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 종료</span>
+                )}
+              </div>
+            )}
+            {!selected.business_hours && selected.phone && <div style={{ marginBottom: 8 }} />}
+            {!selected.business_hours && !selected.phone && <div style={{ marginBottom: 12 }} />}
             <button
               onClick={() => handleDetail(selected)}
               style={{ width: '100%', padding: '10px 0', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: 12, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}

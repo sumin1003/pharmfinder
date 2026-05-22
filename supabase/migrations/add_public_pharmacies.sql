@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public_pharmacies (
   phone               TEXT,
   latitude            DOUBLE PRECISION,
   longitude           DOUBLE PRECISION,
-  linked_pharmacy_id  UUID REFERENCES pharmacies(id) ON DELETE SET NULL,
+  linked_pharmacy_id  INTEGER REFERENCES pharmacies(id) ON DELETE SET NULL,
   created_at          TIMESTAMPTZ DEFAULT NOW(),
   updated_at          TIMESTAMPTZ DEFAULT NOW()
 );

@@ -405,6 +405,11 @@ export default function PharmacyDashboard() {
         {csvResult && !csvResult.error && (
           <div style={{ marginTop: 10, fontSize: 13 }}>
             <span style={{ color: '#16a34a', fontWeight: 500 }}>✓ {csvResult.success}개 등록 완료</span>
+            {csvResult.fuzzy > 0 && (
+              <div style={{ color: '#d97706', marginTop: 4 }}>
+                ⚠ {csvResult.fuzzy}개는 유사 검색으로 매칭됐습니다. 약품명을 확인하세요.
+              </div>
+            )}
             {csvResult.failed?.length > 0 && (
               <div style={{ color: '#dc2626', marginTop: 4 }}>
                 실패: {csvResult.failed.map((f) => `${f.name}(${f.reason})`).join(', ')}

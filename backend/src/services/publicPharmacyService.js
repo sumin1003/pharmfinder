@@ -35,19 +35,25 @@ const getNearbyPublicPharmacies = async ({ lat, lng, radius = 3, medicineId }) =
 
   let anyInventorySet = new Set();
   let stockInventorySet = new Set();
+  let hoursMap = new Map();
 
   if (registeredIds.length > 0) {
     if (medicineId) {
-      const [anyRes, stockRes] = await Promise.all([
+      const [anyRes, stockRes, hoursRes] = await Promise.all([
         supabase.from('pharmacy_inventory').select('pharmacy_id').in('pharmacy_id', registeredIds).gt('quantity', 0),
         supabase.from('pharmacy_inventory').select('pharmacy_id').in('pharmacy_id', registeredIds).eq('medicine_id', medicineId).gt('quantity', 0),
+        supabase.from('pharmacies').select('id, business_hours').in('id', registeredIds),
       ]);
       anyInventorySet = new Set((anyRes.data || []).map((i) => i.pharmacy_id));
       stockInventorySet = new Set((stockRes.data || []).map((i) => i.pharmacy_id));
+      hoursMap = new Map((hoursRes.data || []).map((p) => [p.id, p.business_hours]));
     } else {
-      const { data: anyData } = await supabase
-        .from('pharmacy_inventory').select('pharmacy_id').in('pharmacy_id', registeredIds).gt('quantity', 0);
-      anyInventorySet = new Set((anyData || []).map((i) => i.pharmacy_id));
+      const [anyRes, hoursRes] = await Promise.all([
+        supabase.from('pharmacy_inventory').select('pharmacy_id').in('pharmacy_id', registeredIds).gt('quantity', 0),
+        supabase.from('pharmacies').select('id, business_hours').in('id', registeredIds),
+      ]);
+      anyInventorySet = new Set((anyRes.data || []).map((i) => i.pharmacy_id));
+      hoursMap = new Map((hoursRes.data || []).map((p) => [p.id, p.business_hours]));
     }
   }
 
@@ -67,6 +73,7 @@ const getNearbyPublicPharmacies = async ({ lat, lng, radius = 3, medicineId }) =
         distance: parseInt(d.distance, 10) / 1000,
         is_registered: !!linkedPharmacyId,
         has_inventory: linkedPharmacyId ? anyInventorySet.has(linkedPharmacyId) : false,
+        business_hours: linkedPharmacyId ? (hoursMap.get(linkedPharmacyId) || null) : null,
       };
     })
     .sort((a, b) => a.distance - b.distance);
