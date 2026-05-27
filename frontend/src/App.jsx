@@ -1,7 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
+import { initGA, trackPageView } from './utils/analytics';
 
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -21,10 +23,21 @@ import SocialSignupPage from './pages/SocialSignupPage';
 import ProfilePage from './pages/ProfilePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
+// GA4 pageview 추적 — 라우트 변경 시마다 현재 경로를 GA에 전송
+function GoogleAnalytics() {
+  const location = useLocation();
+  useEffect(() => { initGA(); }, []);
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+  return null;
+}
+
 // 앱 루트 — BrowserRouter·AuthProvider·Layout으로 감싸고 전체 라우트를 정의
 export default function App() {
   return (
     <BrowserRouter>
+      <GoogleAnalytics />
       <AuthProvider>
         <Layout>
           <Routes>
