@@ -1,6 +1,17 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+
+// 타이핑 애니메이션에 사용할 증상 예시 목록
+const EXAMPLES = [
+  '예) 두통이 심하고 열이 나요',
+  '예) 소화가 안 되고 속이 더부룩해요',
+  '예) 코가 막히고 콧물이 나요',
+  '예) 눈이 가렵고 충혈됐어요',
+];
+
+// 증상 칩 버튼 목록
+const CHIPS = ['두통·발열', '소화불량', '코막힘·콧물', '눈 가려움'];
 
 const S = {
   hero: {
@@ -16,8 +27,8 @@ const S = {
     background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)',
     borderRadius: 999, padding: '6px 16px', marginBottom: 28,
   },
-  dot: { width: 8, height: 8, borderRadius: '50%', backgroundColor: '#34d399' },
-  heroTitle: { fontSize: 52, fontWeight: 800, color: 'white', lineHeight: 1.15, marginBottom: 16 },
+  dot: { width: 8, height: 8, borderRadius: '50%', backgroundColor: '#fef08a', boxShadow: '0 0 6px 2px rgba(254,240,138,0.8)' },
+  heroTitle: { fontSize: 48, fontWeight: 800, color: 'white', lineHeight: 1.15, marginBottom: 16 },
   heroSub: { fontSize: 18, color: '#94a3b8', marginBottom: 40, lineHeight: 1.7 },
   tabWrap: { display: 'inline-flex', background: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 4, marginBottom: 24, border: '1px solid rgba(255,255,255,0.1)' },
   tabActive: { padding: '10px 22px', borderRadius: 10, fontSize: 14, fontWeight: 600, background: 'white', color: '#0f172a', cursor: 'pointer', border: 'none' },
@@ -44,6 +55,19 @@ export default function HomePage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // 예시 문구 순환 인덱스
+  const [exampleIdx, setExampleIdx] = useState(0);
+  const typingRef = useRef(null);
+
+  // 3초마다 예시 문구 교체 (symptom 모드이고 query가 없을 때만)
+  useEffect(() => {
+    if (mode === 'medicine' || query !== '') return;
+    typingRef.current = setInterval(() => {
+      setExampleIdx((i) => (i + 1) % EXAMPLES.length);
+    }, 3000);
+    return () => clearInterval(typingRef.current);
+  }, [mode, query]);
 
   // 검색 폼 제출 처리 — 약 이름 모드면 검색 페이지로 이동, 증상 모드면 AI 추천 API 호출
   const handleSearch = async (e) => {
@@ -76,6 +100,13 @@ export default function HomePage() {
 
       {/* ─── Hero ─── */}
       <section style={S.hero}>
+        {/* 배경 격자 패턴 */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+          pointerEvents: 'none',
+        }} />
         {/* 배경 글로우 */}
         <div style={{ position: 'absolute', top: -80, right: -80, width: 400, height: 400, background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -80, left: -80, width: 400, height: 400, background: 'radial-gradient(circle, rgba(5,150,105,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -86,16 +117,33 @@ export default function HomePage() {
             <span style={{ fontSize: 13, fontWeight: 500, color: '#34d399' }}>실시간 약국 재고 확인</span>
           </div>
 
+          {/* 변경된 Hero 제목 */}
           <h1 style={S.heroTitle}>
-            필요한 약,<br />
-            <span style={{ background: 'linear-gradient(90deg, #34d399, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              지금 바로 찾아드려요
+            증상을 말하면<br />
+            <span style={{ background: 'linear-gradient(90deg, #f472b6, #e11d48)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              AI가
             </span>
+            {' '}
+            <span style={{ color: 'white' }}>딱 맞는 약을 찾아드려요</span>
           </h1>
 
           <p style={S.heroSub}>
             증상을 입력하면 AI가 약을 추천하고<br />주변 약국 재고를 바로 확인해드려요
           </p>
+
+          {/* 신뢰 지표 row */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginBottom: 28, flexWrap: 'wrap' }}>
+            {[
+              { icon: '🤖', label: 'AI 즉시 분석' },
+              { icon: '💊', label: '10만+ 약품 DB' },
+              { icon: '🏥', label: '약국 재고 연동' },
+            ].map(item => (
+              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#94a3b8' }}>
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
 
           {/* 탭 */}
           <div style={{ marginBottom: 20 }}>
@@ -114,7 +162,7 @@ export default function HomePage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={mode === 'symptom' ? '예) 두통이 심하고 열이 나요' : '예) 타이레놀, 게보린'}
+              placeholder={mode === 'symptom' ? EXAMPLES[exampleIdx] : '예) 타이레놀, 게보린'}
               style={S.searchInput}
             />
             <button type="submit" disabled={loading} style={{ ...S.searchBtn, opacity: loading ? 0.7 : 1 }}>
@@ -126,6 +174,26 @@ export default function HomePage() {
               ) : '검색'}
             </button>
           </form>
+
+          {/* 증상 칩 버튼 — symptom 모드일 때만 노출 */}
+          {mode === 'symptom' && (
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
+              {CHIPS.map(chip => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => setQuery(chip)}
+                  style={{
+                    padding: '6px 14px', background: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.15)', borderRadius: 999,
+                    color: '#cbd5e1', fontSize: 13, cursor: 'pointer',
+                  }}
+                >
+                  #{chip}
+                </button>
+              ))}
+            </div>
+          )}
 
           {error && (
             <div style={{ marginTop: 16, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '12px 18px', color: '#fca5a5', fontSize: 14 }}>
@@ -226,6 +294,42 @@ export default function HomePage() {
         <>
           <section style={{ padding: '80px 32px', backgroundColor: 'white' }}>
             <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+
+              {/* AI 플로우 3단계 */}
+              <div style={{ textAlign: 'center', marginBottom: 48 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+                  어떻게 동작하나요
+                </p>
+                <h2 style={{ fontSize: 30, fontWeight: 800, color: '#0f172a', marginBottom: 40 }}>
+                  3단계로 완성되는 AI 약 추천
+                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, flexWrap: 'wrap' }}>
+                  {[
+                    { step: '01', icon: '🗣️', title: '증상 입력', desc: '불편한 증상을\n자연어로 입력', highlight: false },
+                    { step: '02', icon: '🤖', title: 'AI 분석', desc: 'AI가 증상을 분석해\n약품 3종 추천', highlight: true },
+                    { step: '03', icon: '🏥', title: '약국 재고 확인', desc: '근처 약국의\n보유 재고 즉시 확인', highlight: false },
+                  ].map((item, idx) => (
+                    <span key={item.step} style={{ display: 'contents' }}>
+                      <div style={{
+                        background: item.highlight ? 'linear-gradient(135deg, #ecfdf5, #d1fae5)' : 'white',
+                        border: item.highlight ? '2px solid #6ee7b7' : '1px solid #e2e8f0',
+                        borderRadius: 20, padding: '28px 24px', width: 180, textAlign: 'center',
+                        boxShadow: item.highlight ? '0 4px 20px rgba(16,185,129,0.15)' : '0 2px 8px rgba(0,0,0,0.04)',
+                      }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: item.highlight ? '#059669' : '#94a3b8', marginBottom: 10, letterSpacing: '0.05em' }}>STEP {item.step}</div>
+                        <div style={{ fontSize: 28, marginBottom: 10 }}>{item.icon}</div>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a', marginBottom: 6 }}>{item.title}</div>
+                        <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{item.desc}</div>
+                      </div>
+                      {idx < 2 && (
+                        <div style={{ fontSize: 20, color: '#cbd5e1', padding: '0 8px' }}>→</div>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* 기존 서비스 소개 헤더 */}
               <div style={{ textAlign: 'center', marginBottom: 56 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>서비스 소개</p>
                 <h2 style={{ fontSize: 36, fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
@@ -233,6 +337,7 @@ export default function HomePage() {
                 </h2>
               </div>
 
+              {/* 기존 3개 기능 카드 */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
                 {[
                   { icon: '🗺️', tag: '위치 기반', title: '주변 약국 지도', desc: '현재 위치에서 가까운 약국을 지도에서 한눈에 찾고, 거리와 운영 정보를 바로 확인하세요.', link: '/map', cta: '지도 보기', color: '#3b82f6', bg: '#eff6ff' },
