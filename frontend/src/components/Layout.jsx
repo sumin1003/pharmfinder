@@ -12,6 +12,16 @@ export default function Layout({ children }) {
 
   return (
     <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
+      {/* 포트폴리오 면책 배너 */}
+      <div style={{
+        width: '100%', backgroundColor: '#fef3c7',
+        borderBottom: '1px solid #fde68a',
+        padding: '8px 32px', textAlign: 'center',
+      }}>
+        <p style={{ fontSize: 13, color: '#92400e', margin: 0 }}>
+          📌 본 사이트는 <strong>개인 포트폴리오 목적</strong>으로 제작되었으며 상업적으로 운영되지 않습니다.
+        </p>
+      </div>
       {/* 헤더 */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 50,
