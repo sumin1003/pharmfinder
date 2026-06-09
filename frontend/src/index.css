@@ -39,3 +39,36 @@ body {
 .animate-pulse {
   animation: pulse 2s ease-in-out infinite;
 }
+
+/* ── 반응형 유틸리티 (모바일 ≤ 768px) ── */
+.pf-desktop-nav { display: flex; }
+.pf-mobile-btn  { display: none; }
+
+@media (max-width: 768px) {
+  .pf-desktop-nav { display: none !important; }
+  .pf-mobile-btn  { display: flex !important; }
+
+  /* Hero */
+  .pf-hero-section { padding: 60px 20px !important; }
+  .pf-hero-title   { font-size: 30px !important; }
+  .pf-search-wrap  { flex-direction: column !important; }
+  .pf-search-wrap > * { width: 100% !important; }
+
+  /* 기능 소개 섹션 */
+  .pf-section-pad { padding: 56px 20px !important; }
+  .pf-grid-3col   { grid-template-columns: 1fr !important; }
+
+  /* 3단계 플로우 */
+  .pf-step-flow   { flex-direction: column !important; align-items: center !important; }
+  .pf-step-arrow  { display: none !important; }
+  .pf-step-card   { width: 100% !important; max-width: 300px !important; }
+
+  /* 약국 CTA */
+  .pf-cta-wrap    { padding: 36px 24px !important; flex-direction: column !important; text-align: center !important; }
+
+  /* 로그인·회원가입 카드 패딩 */
+  .pf-form-card   { padding: 28px 20px !important; }
+
+  /* 포트폴리오 배너 텍스트 */
+  .pf-banner-text { font-size: 11px !important; }
+}

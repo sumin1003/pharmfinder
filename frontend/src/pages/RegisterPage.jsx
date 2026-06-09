@@ -39,7 +39,7 @@ export default function RegisterPage() {
       background: 'linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%)',
     }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{
+        <div className="pf-form-card" style={{
           background: 'white', borderRadius: 24, padding: '40px 36px',
           boxShadow: '0 8px 40px rgba(0,0,0,0.08)', border: '1px solid #f1f5f9',
         }}>

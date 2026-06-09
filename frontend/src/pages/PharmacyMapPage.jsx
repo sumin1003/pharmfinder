@@ -32,12 +32,21 @@ export default function PharmacyMapPage() {
   const [kakaoError, setKakaoError] = useState('');
   const [myLocation, setMyLocation] = useState(null);
   const [kakaoLoaded, setKakaoLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [activeTab, setActiveTab] = useState('map'); // 'map' | 'list' (모바일 전용)
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const overlaysRef = useRef([]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const medicineId = searchParams.get('medicine');
+
+  // 화면 너비 변경 감지
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   useEffect(() => {
     if (window.kakao?.maps) { setKakaoLoaded(true); return; }
@@ -135,131 +144,183 @@ export default function PharmacyMapPage() {
     { color: MARKER_COLORS.public, label: '일반 약국' },
   ];
 
-  return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 64px)' }}>
-      {/* 사이드바 */}
-      <div style={{ width: 320, flexShrink: 0, background: 'white', borderRight: '1px solid #e2e8f0', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: 16, borderBottom: '1px solid #f1f5f9' }}>
-          <h2 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
-            {medicineId ? '재고 있는 약국' : '주변 약국'}
-            <span style={{ marginLeft: 8, fontSize: 14, color: '#94a3b8', fontWeight: 400 }}>{pharmacies.length}곳</span>
-          </h2>
-          {/* 범례 */}
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            {markerLegend.map(({ color, label }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-                <span style={{ fontSize: 11, color: '#64748b' }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+  const TAB_H = 48; // 모바일 탭 바 높이
+  const HEADER_H = 64 + 32; // 헤더 + 배너 높이 (배너 약 32px)
+  const mobileContentH = `calc(100vh - ${HEADER_H + TAB_H}px)`;
+  const desktopH = `calc(100vh - ${HEADER_H}px)`;
 
-        {loading && <p style={{ padding: 16, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>검색 중...</p>}
-        {error && <p style={{ padding: 16, textAlign: 'center', color: '#f87171', fontSize: 14 }}>{error}</p>}
-
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {pharmacies.map((p) => (
-            <div
-              key={p.id}
-              onClick={() => setSelected(p)}
-              style={{
-                padding: 16,
-                borderBottom: '1px solid #f1f5f9',
-                cursor: 'pointer',
-                background: selected?.id === p.id ? '#f0fdf4' : 'white',
-                borderLeft: `4px solid ${selected?.id === p.id ? '#10b981' : 'transparent'}`,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                <div style={{
-                  width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                  background: p.is_registered && p.has_inventory ? MARKER_COLORS.active : p.is_registered ? MARKER_COLORS.registered : MARKER_COLORS.public,
-                }} />
-                <h3 style={{ fontWeight: 500, color: '#0f172a', fontSize: 14 }}>{p.name}</h3>
-              </div>
-              <p style={{ fontSize: 12, color: '#64748b', marginBottom: 4, paddingLeft: 14 }}>{p.address}</p>
-              <div style={{ paddingLeft: 14, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                {p.distance !== undefined && (
-                  <span style={{ fontSize: 12, color: '#10b981' }}>{p.distance.toFixed(1)}km</span>
-                )}
-                {p.is_registered && p.has_inventory && (
-                  <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '1px 6px', borderRadius: 999 }}>재고 관리 중</span>
-                )}
-                {p.is_registered && !p.has_inventory && (
-                  <span style={{ fontSize: 11, background: '#fef3c7', color: '#d97706', padding: '1px 6px', borderRadius: 999 }}>가입 약국</span>
-                )}
-                {p.business_hours && isOpenNow(p.business_hours) === true && (
-                  <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '1px 6px', borderRadius: 999 }}>영업 중</span>
-                )}
-                {p.business_hours && isOpenNow(p.business_hours) === false && (
-                  <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '1px 6px', borderRadius: 999 }}>영업 종료</span>
-                )}
-              </div>
+  // 약국 목록 패널 (사이드바 / 모바일 목록 탭)
+  // display 속성으로 숨김 — mapRef DOM 언마운트 방지를 위해 && 대신 사용
+  const listPanel = (
+    <div style={{
+      width: isMobile ? '100%' : 320,
+      flexShrink: 0,
+      background: 'white',
+      borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
+      overflowY: 'auto',
+      display: (!isMobile || activeTab === 'list') ? 'flex' : 'none',
+      flexDirection: 'column',
+      height: isMobile ? mobileContentH : desktopH,
+    }}>
+      <div style={{ padding: 16, borderBottom: '1px solid #f1f5f9' }}>
+        <h2 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+          {medicineId ? '재고 있는 약국' : '주변 약국'}
+          <span style={{ marginLeft: 8, fontSize: 14, color: '#94a3b8', fontWeight: 400 }}>{pharmacies.length}곳</span>
+        </h2>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          {markerLegend.map(({ color, label }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              <span style={{ fontSize: 11, color: '#64748b' }}>{label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 지도 영역 */}
-      <div style={{ flex: 1, position: 'relative' }}>
-        <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+      {loading && <p style={{ padding: 16, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>검색 중...</p>}
+      {error && <p style={{ padding: 16, textAlign: 'center', color: '#f87171', fontSize: 14 }}>{error}</p>}
 
-        {kakaoError && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: 32 }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>🗺️</div>
-            <p style={{ color: '#dc2626', fontSize: 14, fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>카카오맵 로드 실패</p>
-            <p style={{ color: '#64748b', fontSize: 13, textAlign: 'center', lineHeight: 1.6 }}>{kakaoError}</p>
-          </div>
-        )}
-        {!kakaoLoaded && !kakaoError && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', color: '#64748b', fontSize: 14 }}>
-            지도를 불러오는 중입니다...
-          </div>
-        )}
-
-        {/* 선택된 약국 팝업 */}
-        {selected && (
-          <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'white', borderRadius: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: 20, width: 320, zIndex: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-              <div>
-                <h3 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{selected.name}</h3>
-                {selected.is_registered && selected.has_inventory && (
-                  <span style={{ fontSize: 12, background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: 999 }}>재고 관리 중</span>
-                )}
-                {selected.is_registered && !selected.has_inventory && (
-                  <span style={{ fontSize: 12, background: '#fef3c7', color: '#d97706', padding: '2px 8px', borderRadius: 999 }}>가입 약국</span>
-                )}
-                {!selected.is_registered && (
-                  <span style={{ fontSize: 12, background: '#f1f5f9', color: '#94a3b8', padding: '2px 8px', borderRadius: 999 }}>공공데이터 약국</span>
-                )}
-              </div>
-              <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 16, padding: 0 }}>✕</button>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {pharmacies.map((p) => (
+          <div
+            key={p.id}
+            onClick={() => {
+              setSelected(p);
+              if (isMobile) setActiveTab('map');
+            }}
+            style={{
+              padding: 16,
+              borderBottom: '1px solid #f1f5f9',
+              cursor: 'pointer',
+              background: selected?.id === p.id ? '#f0fdf4' : 'white',
+              borderLeft: `4px solid ${selected?.id === p.id ? '#10b981' : 'transparent'}`,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <div style={{
+                width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                background: p.is_registered && p.has_inventory ? MARKER_COLORS.active : p.is_registered ? MARKER_COLORS.registered : MARKER_COLORS.public,
+              }} />
+              <h3 style={{ fontWeight: 500, color: '#0f172a', fontSize: 14 }}>{p.name}</h3>
             </div>
-            <p style={{ fontSize: 14, color: '#64748b', marginBottom: 4 }}>{selected.address}</p>
-            {selected.phone && <p style={{ fontSize: 14, color: '#64748b', marginBottom: 4 }}>{selected.phone}</p>}
-            {selected.business_hours && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <span style={{ fontSize: 13, color: '#64748b' }}>{selected.business_hours}</span>
-                {isOpenNow(selected.business_hours) === true && (
-                  <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 중</span>
-                )}
-                {isOpenNow(selected.business_hours) === false && (
-                  <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 종료</span>
-                )}
-              </div>
-            )}
-            {!selected.business_hours && selected.phone && <div style={{ marginBottom: 8 }} />}
-            {!selected.business_hours && !selected.phone && <div style={{ marginBottom: 12 }} />}
-            <button
-              onClick={() => handleDetail(selected)}
-              style={{ width: '100%', padding: '10px 0', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: 12, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}
-            >
-              {selected.is_registered ? '상세보기 / 재고 확인' : '약국 정보 보기'}
-            </button>
+            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 4, paddingLeft: 14 }}>{p.address}</p>
+            <div style={{ paddingLeft: 14, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              {p.distance !== undefined && (
+                <span style={{ fontSize: 12, color: '#10b981' }}>{p.distance.toFixed(1)}km</span>
+              )}
+              {p.is_registered && p.has_inventory && (
+                <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '1px 6px', borderRadius: 999 }}>재고 관리 중</span>
+              )}
+              {p.is_registered && !p.has_inventory && (
+                <span style={{ fontSize: 11, background: '#fef3c7', color: '#d97706', padding: '1px 6px', borderRadius: 999 }}>가입 약국</span>
+              )}
+              {p.business_hours && isOpenNow(p.business_hours) === true && (
+                <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '1px 6px', borderRadius: 999 }}>영업 중</span>
+              )}
+              {p.business_hours && isOpenNow(p.business_hours) === false && (
+                <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '1px 6px', borderRadius: 999 }}>영업 종료</span>
+              )}
+            </div>
           </div>
-        )}
+        ))}
       </div>
+    </div>
+  );
+
+  // 지도 패널 — display 속성으로 숨김으로써 mapRef DOM을 항상 유지
+  const mapPanel = (
+    <div style={{ flex: 1, position: 'relative', height: isMobile ? mobileContentH : desktopH, display: (!isMobile || activeTab === 'map') ? 'block' : 'none' }}>
+      <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+
+      {kakaoError && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: 32 }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🗺️</div>
+          <p style={{ color: '#dc2626', fontSize: 14, fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>카카오맵 로드 실패</p>
+          <p style={{ color: '#64748b', fontSize: 13, textAlign: 'center', lineHeight: 1.6 }}>{kakaoError}</p>
+        </div>
+      )}
+      {!kakaoLoaded && !kakaoError && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', color: '#64748b', fontSize: 14 }}>
+          지도를 불러오는 중입니다...
+        </div>
+      )}
+
+      {/* 선택된 약국 팝업 */}
+      {selected && (
+        <div style={{
+          position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          background: 'white', borderRadius: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          padding: 20, width: 'min(320px, calc(100vw - 32px))', zIndex: 10,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+            <div>
+              <h3 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{selected.name}</h3>
+              {selected.is_registered && selected.has_inventory && (
+                <span style={{ fontSize: 12, background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: 999 }}>재고 관리 중</span>
+              )}
+              {selected.is_registered && !selected.has_inventory && (
+                <span style={{ fontSize: 12, background: '#fef3c7', color: '#d97706', padding: '2px 8px', borderRadius: 999 }}>가입 약국</span>
+              )}
+              {!selected.is_registered && (
+                <span style={{ fontSize: 12, background: '#f1f5f9', color: '#94a3b8', padding: '2px 8px', borderRadius: 999 }}>공공데이터 약국</span>
+              )}
+            </div>
+            <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 16, padding: 0, marginLeft: 8 }}>✕</button>
+          </div>
+          <p style={{ fontSize: 14, color: '#64748b', marginBottom: 4 }}>{selected.address}</p>
+          {selected.phone && <p style={{ fontSize: 14, color: '#64748b', marginBottom: 4 }}>{selected.phone}</p>}
+          {selected.business_hours && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 13, color: '#64748b' }}>{selected.business_hours}</span>
+              {isOpenNow(selected.business_hours) === true && (
+                <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 중</span>
+              )}
+              {isOpenNow(selected.business_hours) === false && (
+                <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 종료</span>
+              )}
+            </div>
+          )}
+          {!selected.business_hours && selected.phone && <div style={{ marginBottom: 8 }} />}
+          {!selected.business_hours && !selected.phone && <div style={{ marginBottom: 12 }} />}
+          <button
+            onClick={() => handleDetail(selected)}
+            style={{ width: '100%', padding: '10px 0', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: 12, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}
+          >
+            {selected.is_registered ? '상세보기 / 재고 확인' : '약국 정보 보기'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
+      {/* 모바일 탭 바 */}
+      {isMobile && (
+        <div style={{ display: 'flex', background: 'white', borderBottom: '1px solid #e2e8f0', height: TAB_H }}>
+          {[
+            { id: 'map', label: '🗺️ 지도' },
+            { id: 'list', label: `📋 목록 (${pharmacies.length})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                flex: 1, background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 14, fontWeight: activeTab === tab.id ? 700 : 500,
+                color: activeTab === tab.id ? '#059669' : '#64748b',
+                borderBottom: `2px solid ${activeTab === tab.id ? '#10b981' : 'transparent'}`,
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 두 패널 항상 렌더링 — 각 패널 내부 display 속성으로 표시/숨김 */}
+      {listPanel}
+      {mapPanel}
     </div>
   );
 }

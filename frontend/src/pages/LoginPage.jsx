@@ -34,7 +34,7 @@ export default function LoginPage() {
     <div style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%)' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         {/* 카드 */}
-        <div style={{ background: 'white', borderRadius: 28, padding: '40px 40px', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', border: '1px solid #f1f5f9' }}>
+        <div className="pf-form-card" style={{ background: 'white', borderRadius: 28, padding: '40px 40px', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', border: '1px solid #f1f5f9' }}>
           {/* 로고 */}
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <div style={{

@@ -17,7 +17,6 @@ const S = {
   hero: {
     width: '100%',
     background: 'linear-gradient(135deg, #0f172a 0%, #064e3b 50%, #0f172a 100%)',
-    padding: '96px 32px',
     textAlign: 'center',
     position: 'relative',
     overflow: 'hidden',
@@ -28,16 +27,14 @@ const S = {
     borderRadius: 999, padding: '6px 16px', marginBottom: 28,
   },
   dot: { width: 8, height: 8, borderRadius: '50%', backgroundColor: '#fef08a', boxShadow: '0 0 6px 2px rgba(254,240,138,0.8)' },
-  heroTitle: { fontSize: 48, fontWeight: 800, color: 'white', lineHeight: 1.15, marginBottom: 16 },
   heroSub: { fontSize: 18, color: '#94a3b8', marginBottom: 40, lineHeight: 1.7 },
   tabWrap: { display: 'inline-flex', background: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 4, marginBottom: 24, border: '1px solid rgba(255,255,255,0.1)' },
   tabActive: { padding: '10px 22px', borderRadius: 10, fontSize: 14, fontWeight: 600, background: 'white', color: '#0f172a', cursor: 'pointer', border: 'none' },
   tabInactive: { padding: '10px 22px', borderRadius: 10, fontSize: 14, fontWeight: 500, background: 'transparent', color: '#94a3b8', cursor: 'pointer', border: 'none' },
-  searchWrap: { display: 'flex', gap: 12, maxWidth: 600, margin: '0 auto' },
   searchInput: {
     flex: 1, padding: '16px 22px', fontSize: 15,
     background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: 14, color: 'white', outline: 'none',
+    borderRadius: 14, color: 'white', outline: 'none', minWidth: 0,
   },
   searchBtn: {
     padding: '16px 28px', background: 'linear-gradient(135deg, #10b981, #059669)',
@@ -99,7 +96,7 @@ export default function HomePage() {
     <div style={{ width: '100%' }}>
 
       {/* ─── Hero ─── */}
-      <section style={S.hero}>
+      <section className="pf-hero-section" style={{ ...S.hero, padding: '96px 32px' }}>
         {/* 배경 격자 패턴 */}
         <div style={{
           position: 'absolute', inset: 0,
@@ -117,8 +114,7 @@ export default function HomePage() {
             <span style={{ fontSize: 13, fontWeight: 500, color: '#34d399' }}>실시간 약국 재고 확인</span>
           </div>
 
-          {/* 변경된 Hero 제목 */}
-          <h1 style={S.heroTitle}>
+          <h1 className="pf-hero-title" style={{ fontSize: 48, fontWeight: 800, color: 'white', lineHeight: 1.15, marginBottom: 16 }}>
             증상을 말하면<br />
             <span style={{ background: 'linear-gradient(90deg, #f472b6, #e11d48)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               AI가
@@ -132,7 +128,7 @@ export default function HomePage() {
           </p>
 
           {/* 신뢰 지표 row */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginBottom: 28, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginBottom: 28, flexWrap: 'wrap' }}>
             {[
               { icon: '🤖', label: 'AI 즉시 분석' },
               { icon: '💊', label: '10만+ 약품 DB' },
@@ -158,7 +154,7 @@ export default function HomePage() {
           </div>
 
           {/* 검색창 */}
-          <form onSubmit={handleSearch} style={S.searchWrap}>
+          <form onSubmit={handleSearch} className="pf-search-wrap" style={{ display: 'flex', gap: 12, maxWidth: 600, margin: '0 auto' }}>
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -292,7 +288,7 @@ export default function HomePage() {
       {/* ─── 기능 소개 ─── */}
       {!result && (
         <>
-          <section style={{ padding: '80px 32px', backgroundColor: 'white' }}>
+          <section className="pf-section-pad" style={{ padding: '80px 32px', backgroundColor: 'white' }}>
             <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
               {/* AI 플로우 3단계 */}
@@ -303,14 +299,14 @@ export default function HomePage() {
                 <h2 style={{ fontSize: 30, fontWeight: 800, color: '#0f172a', marginBottom: 40 }}>
                   3단계로 완성되는 AI 약 추천
                 </h2>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, flexWrap: 'wrap' }}>
+                <div className="pf-step-flow" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, flexWrap: 'wrap' }}>
                   {[
                     { step: '01', icon: '🗣️', title: '증상 입력', desc: '불편한 증상을\n자연어로 입력', highlight: false },
                     { step: '02', icon: '🤖', title: 'AI 분석', desc: 'AI가 증상을 분석해\n약품 3종 추천', highlight: true },
                     { step: '03', icon: '🏥', title: '약국 재고 확인', desc: '근처 약국의\n보유 재고 즉시 확인', highlight: false },
                   ].map((item, idx) => (
                     <span key={item.step} style={{ display: 'contents' }}>
-                      <div style={{
+                      <div className="pf-step-card" style={{
                         background: item.highlight ? 'linear-gradient(135deg, #ecfdf5, #d1fae5)' : 'white',
                         border: item.highlight ? '2px solid #6ee7b7' : '1px solid #e2e8f0',
                         borderRadius: 20, padding: '28px 24px', width: 180, textAlign: 'center',
@@ -322,14 +318,14 @@ export default function HomePage() {
                         <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{item.desc}</div>
                       </div>
                       {idx < 2 && (
-                        <div style={{ fontSize: 20, color: '#cbd5e1', padding: '0 8px' }}>→</div>
+                        <div className="pf-step-arrow" style={{ fontSize: 20, color: '#cbd5e1', padding: '0 8px' }}>→</div>
                       )}
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* 기존 서비스 소개 헤더 */}
+              {/* 서비스 소개 헤더 */}
               <div style={{ textAlign: 'center', marginBottom: 56 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>서비스 소개</p>
                 <h2 style={{ fontSize: 36, fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
@@ -337,8 +333,8 @@ export default function HomePage() {
                 </h2>
               </div>
 
-              {/* 기존 3개 기능 카드 */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+              {/* 3개 기능 카드 — 모바일 1열, 데스크톱 3열 */}
+              <div className="pf-grid-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
                 {[
                   { icon: '🗺️', tag: '위치 기반', title: '주변 약국 지도', desc: '현재 위치에서 가까운 약국을 지도에서 한눈에 찾고, 거리와 운영 정보를 바로 확인하세요.', link: '/map', cta: '지도 보기', color: '#3b82f6', bg: '#eff6ff' },
                   { icon: '🤖', tag: 'AI 추천', title: 'AI 증상 분석', desc: '증상을 입력하면 AI가 적합한 일반의약품 3가지를 즉시 추천해드려요. 로그인 없이 바로 사용 가능.', link: null, cta: null, color: '#10b981', bg: '#ecfdf5' },
@@ -375,9 +371,9 @@ export default function HomePage() {
           </section>
 
           {/* ─── 약국 CTA ─── */}
-          <section style={{ padding: '80px 32px', background: '#f8fafc' }}>
+          <section className="pf-section-pad" style={{ padding: '80px 32px', background: '#f8fafc' }}>
             <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-              <div style={{
+              <div className="pf-cta-wrap" style={{
                 background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)',
                 borderRadius: 28, padding: '56px 64px',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32,
@@ -392,7 +388,7 @@ export default function HomePage() {
                     관리자 승인 후 서비스를 시작할 수 있습니다.
                   </p>
                 </div>
-                <div style={{ flexShrink: 0 }}>
+                <div>
                   <button
                     onClick={() => navigate('/register/pharmacy')}
                     style={{
