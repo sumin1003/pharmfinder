@@ -2,7 +2,7 @@
 
 > 의약품을 검색하고 근처 약국의 재고를 실시간으로 확인하는 플랫폼
 
-![PharmFinder 메인 화면](docs/finder.png)
+![PharmFinder 메인 화면](docs/finder1.png)
 
 ---
 
