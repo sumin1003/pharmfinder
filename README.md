@@ -4,8 +4,6 @@
 
 ![PharmFinder 메인 화면](docs/finder.png)
 
-**🌐 Live:** [https://pharmfinder.vercel.app](https://pharmfinder.vercel.app)
-
 ---
 
 ## 소개
