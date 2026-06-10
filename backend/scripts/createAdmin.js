@@ -8,9 +8,14 @@ const supabase = createClient(
 );
 
 async function main() {
-  const email = process.argv[2] || 'admin@pharmfinder.com';
-  const password = process.argv[3] || 'Admin1234!';
+  const email = process.argv[2];
+  const password = process.argv[3];
   const name = process.argv[4] || '관리자';
+
+  if (!email || !password) {
+    console.error('사용법: node createAdmin.js <email> <password> [name]');
+    process.exit(1);
+  }
 
   const hashed = await bcrypt.hash(password, 10);
 
