@@ -28,5 +28,9 @@ npm-debug.log*
 # 임시 테스트 파일
 Temptest.json
 
+# docs — 이미지 제외한 내부 문서
+docs/*.md
+docs/*.docx
+
 # Claude Code 내부 설정
 .claude/
