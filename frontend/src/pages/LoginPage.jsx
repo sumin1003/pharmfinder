@@ -71,6 +71,12 @@ export default function LoginPage() {
               </div>
             ))}
 
+            <div style={{ textAlign: 'right', marginBottom: 18 }}>
+              <Link to="/forgot-password" style={{ fontSize: 13, color: '#64748b', textDecoration: 'none' }}>
+                비밀번호를 잊으셨나요?
+              </Link>
+            </div>
+
             {error && (
               <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '12px 14px', fontSize: 13, color: '#dc2626', marginBottom: 18 }}>
                 {error}

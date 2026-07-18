@@ -2,8 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const passport = require('./config/passport');
+const { verifyCustomHeader } = require('./middleware/csrf');
 
 const app = express();
 
@@ -23,7 +25,7 @@ app.use(cors({
     callback(Object.assign(new Error('CORS 정책에 의해 차단됐습니다.'), { status: 403 }));
   },
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 }));
 // HTTP 요청 로깅
@@ -32,6 +34,10 @@ app.use(morgan('dev'));
 app.use(express.json());
 // URL 인코딩 바디 파싱
 app.use(express.urlencoded({ extended: true }));
+// httpOnly 인증 쿠키 파싱
+app.use(cookieParser());
+// CSRF 방어: 상태 변경 요청에 X-Requested-With 헤더 요구 (쿠키는 브라우저가 자동 전송하므로 필요)
+app.use(verifyCustomHeader);
 // OAuth 핸드셰이크용 세션 (JWT 인증과 별개 — OAuth 리다이렉트 흐름에서만 사용)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'pharmfinder-session-secret',

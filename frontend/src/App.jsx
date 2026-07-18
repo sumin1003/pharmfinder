@@ -22,6 +22,8 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 import SocialSignupPage from './pages/SocialSignupPage';
 import ProfilePage from './pages/ProfilePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordConfirmPage from './pages/ResetPasswordConfirmPage';
 
 // GA4 pageview 추적 — 라우트 변경 시마다 현재 경로를 GA에 전송
 function GoogleAnalytics() {
@@ -52,6 +54,8 @@ export default function App() {
             <Route path="/pharmacies/:id" element={<PharmacyDetailPage />} />
             <Route path="/auth-callback" element={<AuthCallbackPage />} />
             <Route path="/social-signup" element={<SocialSignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
             <Route
               path="/profile"
               element={<PrivateRoute roles={['user', 'pharmacy', 'admin']}><ProfilePage /></PrivateRoute>}

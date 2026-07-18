@@ -63,10 +63,7 @@ export default function ProfilePage() {
       }
       const { data } = await api.put('/auth/profile', payload);
       updateUser(data.user);
-      // 이메일 변경으로 새 토큰이 발급된 경우 로컬스토리지 갱신
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      // 이메일 변경 시 서버가 새 인증 쿠키를 Set-Cookie로 갱신함
       setProfileSuccess('정보가 성공적으로 저장되었습니다.');
     } catch (err) {
       setProfileError(err.response?.data?.message || '저장에 실패했습니다. 다시 시도해주세요.');

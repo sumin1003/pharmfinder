@@ -796,13 +796,16 @@ function PublicLinkTab() {
   );
 }
 
-// 공공약국 동기화 탭 — 지역을 입력해 HIRA API에서 약국 목록을 가져와 저장
+// 공공약국 동기화 탭 — 지역을 입력해 HIRA API에서 약국 목록을 가져와 저장, E-Gen API로 영업시간도 동기화
 function PublicSyncTab() {
   const [siNm, setSiNm] = useState('');
   const [sigunguNm, setSigunguNm] = useState('');
   const [syncing, setSyncing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [syncingHours, setSyncingHours] = useState(false);
+  const [hoursResult, setHoursResult] = useState(null);
+  const [hoursError, setHoursError] = useState('');
 
   const handleSync = async (e) => {
     e.preventDefault();
@@ -817,6 +820,20 @@ function PublicSyncTab() {
       setError(err.response?.data?.message || '동기화에 실패했습니다.');
     } finally {
       setSyncing(false);
+    }
+  };
+
+  // 영업시간 동기화 — E-Gen API 지역필터가 동작하지 않아 전국 데이터를 배치(페이지) 단위로 순회, 누를 때마다 이어서 진행
+  const handleSyncHours = async () => {
+    setSyncingHours(true);
+    setHoursError('');
+    try {
+      const { data } = await api.post('/pharmacies/public/sync-hours');
+      setHoursResult(data);
+    } catch (err) {
+      setHoursError(err.response?.data?.message || '영업시간 동기화에 실패했습니다.');
+    } finally {
+      setSyncingHours(false);
     }
   };
 
@@ -881,6 +898,34 @@ function PublicSyncTab() {
           {syncing ? '동기화 중...' : '동기화 실행'}
         </button>
       </form>
+
+      <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '24px 0' }} />
+
+      <p style={{ fontSize: 14, color: '#64748b', marginBottom: 12, lineHeight: 1.6 }}>
+        국립중앙의료원(E-Gen) API로 전국 약국 영업시간을 조회해, 이미 동기화된 공공약국 레코드와 매칭되는 건에 한해 영업시간을 채웁니다.
+        지역 지정 없이 전국 데이터를 배치 단위로 나눠 처리하며, 버튼을 누를 때마다 이어서 진행됩니다 (매일 자동으로도 진행됨).
+        공공데이터 기반이라 실제 영업시간과 다를 수 있습니다.
+      </p>
+
+      {hoursError && <p style={s.errorText}>{hoursError}</p>}
+
+      {hoursResult && (
+        <div style={{ background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14, color: '#16a34a' }}>
+          <p style={{ marginBottom: hoursResult.totalCount ? 8 : 0 }}>✅ {hoursResult.message}</p>
+          {hoursResult.totalCount > 0 && (
+            <div style={{ background: '#bbf7d0', borderRadius: 999, height: 8, overflow: 'hidden' }}>
+              <div style={{
+                width: `${Math.min(100, Math.round((((hoursResult.isComplete ? hoursResult.totalCount : (hoursResult.nextPage - 1) * 100) / hoursResult.totalCount) * 100)))}%`,
+                background: '#16a34a', height: '100%',
+              }} />
+            </div>
+          )}
+        </div>
+      )}
+
+      <button type="button" onClick={handleSyncHours} disabled={syncingHours} style={{ ...s.btnPrimary, opacity: syncingHours ? 0.7 : 1 }}>
+        {syncingHours ? '영업시간 동기화 중...' : '다음 배치 실행'}
+      </button>
     </div>
   );
 }

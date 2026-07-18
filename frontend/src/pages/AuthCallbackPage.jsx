@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-// 소셜 로그인 콜백 — 백엔드 리다이렉트에서 token 파라미터를 추출해 AuthContext에 저장 후 홈 이동
+// 소셜 로그인 콜백 — 백엔드가 이미 httpOnly 쿠키로 인증을 발급했으므로 세션을 복원해 홈으로 이동
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { loginWithToken } = useAuth();
+  const { restoreSession } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -18,15 +18,13 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    const token = params.get('token');
     const error = params.get('error');
-
-    if (error || !token) {
+    if (error) {
       navigate('/login?error=social_login_failed', { replace: true });
       return;
     }
 
-    loginWithToken(token)
+    restoreSession()
       .then(() => navigate('/', { replace: true }))
       .catch(() => navigate('/login', { replace: true }));
   }, []);

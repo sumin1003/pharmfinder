@@ -7,7 +7,7 @@ import api from '../services/api';
 export default function SocialSignupPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { loginWithToken } = useAuth();
+  const { restoreSession } = useAuth();
 
   const params = new URLSearchParams(location.search);
   const pendingToken = params.get('pending') || '';
@@ -33,12 +33,12 @@ export default function SocialSignupPage() {
     setLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/auth/social/complete', {
+      await api.post('/auth/social/complete', {
         pendingToken,
         name: form.name.trim(),
         email: form.email.trim(),
       });
-      await loginWithToken(data.token);
+      await restoreSession();
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || '가입에 실패했습니다. 다시 시도해주세요.');

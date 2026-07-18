@@ -16,6 +16,7 @@ router.get('/public/nearby',     publicPharmacyController.getNearby);
 router.get('/public/search',     publicPharmacyController.search);
 router.put('/public/self/link',  authenticate, authorize('pharmacy'), requireApprovedPharmacy, publicPharmacyController.linkSelf);
 router.post('/public/sync',      authenticate, authorize('admin'), publicPharmacyController.sync);
+router.post('/public/sync-hours', authenticate, authorize('admin'), publicPharmacyController.syncHours);
 router.get('/public/:id',        publicPharmacyController.getById);
 router.put('/public/:id/link',   authenticate, authorize('admin'), publicPharmacyController.link);
 router.delete('/public/:id/link', authenticate, authorize('admin'), publicPharmacyController.unlink);

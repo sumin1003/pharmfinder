@@ -81,7 +81,7 @@ export default function Layout({ children }) {
                     {user.name}
                   </Link>
                 </div>
-                <button onClick={() => { logout(); navigate('/'); }} style={{
+                <button onClick={() => { logout().then(() => navigate('/')); }} style={{
                   fontSize: 13, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer',
                   padding: '6px 10px', borderRadius: 8,
                 }}>로그아웃</button>
@@ -181,7 +181,7 @@ export default function Layout({ children }) {
                     <span style={{ fontSize: 14, color: '#334155', fontWeight: 500 }}>{user.name}</span>
                   </Link>
                   <button
-                    onClick={() => { logout(); navigate('/'); setMenuOpen(false); }}
+                    onClick={() => { logout().then(() => navigate('/')); setMenuOpen(false); }}
                     style={{ padding: '11px', borderRadius: 10, background: '#f1f5f9', color: '#64748b', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
                   >
                     로그아웃

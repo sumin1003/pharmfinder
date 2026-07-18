@@ -68,6 +68,30 @@ const sync = async (req, res, next) => {
 };
 
 /**
+ * POST /api/pharmacies/public/sync-hours
+ * 인증: 필요 (admin)
+ * 국립중앙의료원(E-Gen) API에서 약국 영업시간을 다음 배치(페이지 단위)만큼 조회해 기존 공공약국 레코드에 매칭·저장한다.
+ * 지역필터가 동작하지 않아 전국 데이터를 순회하며, 호출할 때마다 이어서 진행된다.
+ */
+const syncHours = async (req, res, next) => {
+  try {
+    const result = await publicPharmacyService.syncBusinessHoursFromEgen();
+    const completedCount = result.isComplete ? result.totalCount : (result.nextPage - 1) * 100;
+    const progressText = result.totalCount
+      ? `전체 ${result.totalCount.toLocaleString()}건 중 ${completedCount.toLocaleString()}건 처리`
+      : '';
+    res.json({
+      message: result.isComplete
+        ? `${result.processed}건 처리 — 전국 순회를 완료하고 처음부터 다시 시작합니다.`
+        : `${result.processed}건 처리 — ${progressText}`,
+      ...result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * PUT /api/pharmacies/public/self/link
  * 인증: 필요 (pharmacy, approved)
  * 약국 사업자가 자신의 약국을 공공데이터 약국과 연결한다.
@@ -115,4 +139,4 @@ const unlink = async (req, res, next) => {
   }
 };
 
-module.exports = { getNearby, getById, search, sync, linkSelf, link, unlink };
+module.exports = { getNearby, getById, search, sync, syncHours, linkSelf, link, unlink };

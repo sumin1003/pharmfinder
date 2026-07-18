@@ -79,4 +79,31 @@ const sendPharmacyStatusEmail = async ({ pharmacyEmail, pharmacyName, status, re
   });
 };
 
-module.exports = { sendLowStockAlert, sendPharmacyStatusEmail };
+// 비밀번호 재설정 링크 이메일 발송 — EMAIL_USER 미설정 시 경고만 출력하고 종료
+const sendPasswordResetEmail = async ({ email, name, token }) => {
+  if (!process.env.EMAIL_USER) {
+    console.warn('[notificationService] EMAIL_USER 환경변수가 설정되지 않아 이메일 알림을 건너뜁니다.');
+    return;
+  }
+
+  const transporter = createTransporter();
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const resetLink = `${frontendUrl}/reset-password-confirm?token=${token}`;
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: '[PharmFinder] 비밀번호 재설정 안내',
+    text: [
+      `안녕하세요, ${name}님.`,
+      '',
+      '아래 링크에서 새 비밀번호를 설정해주세요. 링크는 30분간 유효합니다.',
+      '',
+      resetLink,
+      '',
+      '본인이 요청하지 않았다면 이 메일을 무시하셔도 됩니다.',
+    ].join('\n'),
+  });
+};
+
+module.exports = { sendLowStockAlert, sendPharmacyStatusEmail, sendPasswordResetEmail };

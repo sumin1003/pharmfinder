@@ -1,17 +1,16 @@
 const jwt = require('jsonwebtoken');
 const supabase = require('../config/supabase');
+const { COOKIE_NAME } = require('../config/cookie');
 
-// Authorization 헤더의 Bearer 토큰을 검증하고 req.user에 페이로드를 주입
+// httpOnly 쿠키의 JWT를 검증하고 req.user에 페이로드를 주입
 const authenticate = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const token = req.cookies[COOKIE_NAME];
+  if (!token) {
     return res.status(401).json({ message: '인증 토큰이 필요합니다.' });
   }
 
-  const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch {
     return res.status(401).json({ message: '유효하지 않은 토큰입니다.' });

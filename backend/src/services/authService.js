@@ -1,9 +1,12 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const supabase = require('../config/supabase');
 const { geocodeAddress } = require('./pharmacyService');
+const { sendPasswordResetEmail } = require('./notificationService');
 
 const SALT_ROUNDS = 10;
+const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30분
 
 // 사용자 객체로 JWT 토큰을 생성하여 반환
 const generateToken = (user) =>
@@ -190,7 +193,8 @@ const changePassword = async (userId, currentPassword, newPassword) => {
 
   if (error || !user) throw Object.assign(new Error('사용자를 찾을 수 없습니다.'), { status: 404 });
 
-  if (user.provider !== null)
+  // users.provider의 이메일 가입 기본값은 'local' — 소셜 가입만 실제 provider명('google' 등)을 가짐
+  if (user.provider !== 'local')
     throw Object.assign(new Error('소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.'), { status: 400 });
 
   const isMatch = await bcrypt.compare(currentPassword, user.password);
@@ -276,4 +280,54 @@ const updateProfile = async (userId, userRole, { name, email, pharmacyName, addr
   return { user: updatedUser, token };
 };
 
-module.exports = { registerUser, registerPharmacy, login, getMe, findOrCreateSocialUser, completeSocialSignup, changePassword, updateProfile };
+// 비밀번호 재설정 이메일 발송 — 계정 존재 여부와 무관하게 항상 동일 응답(사용자 열거 공격 방지), 소셜 가입 계정은 토큰 미발급
+const requestPasswordReset = async (email) => {
+  const { data: user } = await supabase
+    .from('users')
+    .select('id, name, provider')
+    .eq('email', email)
+    .single();
+
+  // 존재하지 않거나 소셜 가입 계정이면 조용히 종료 (비밀번호 자체가 없음)
+  if (!user || user.provider !== 'local') return;
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString();
+
+  const { error } = await supabase
+    .from('users')
+    .update({ reset_token: token, reset_token_expires_at: expiresAt })
+    .eq('id', user.id);
+
+  if (error) throw error;
+
+  await sendPasswordResetEmail({ email, name: user.name, token });
+};
+
+// 재설정 토큰 검증 후 새 비밀번호로 변경, 토큰은 1회성이므로 사용 후 즉시 초기화
+const resetPassword = async (token, newPassword) => {
+  if (!token) throw Object.assign(new Error('유효하지 않은 재설정 요청입니다.'), { status: 400 });
+  if (newPassword.length < 8)
+    throw Object.assign(new Error('새 비밀번호는 8자 이상이어야 합니다.'), { status: 400 });
+
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id, reset_token_expires_at')
+    .eq('reset_token', token)
+    .single();
+
+  if (error || !user || new Date(user.reset_token_expires_at) < new Date())
+    throw Object.assign(new Error('재설정 링크가 유효하지 않거나 만료됐습니다. 다시 요청해주세요.'), { status: 401 });
+
+  const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({ password: hashed, reset_token: null, reset_token_expires_at: null })
+    .eq('id', user.id);
+
+  if (updateError) throw updateError;
+  return { message: '비밀번호가 재설정됐습니다. 새 비밀번호로 로그인해주세요.' };
+};
+
+module.exports = { registerUser, registerPharmacy, login, getMe, findOrCreateSocialUser, completeSocialSignup, changePassword, updateProfile, requestPasswordReset, resetPassword };

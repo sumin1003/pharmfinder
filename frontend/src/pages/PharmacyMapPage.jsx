@@ -270,13 +270,18 @@ export default function PharmacyMapPage() {
           <p style={{ fontSize: 14, color: '#64748b', marginBottom: 4 }}>{selected.address}</p>
           {selected.phone && <p style={{ fontSize: 14, color: '#64748b', marginBottom: 4 }}>{selected.phone}</p>}
           {selected.business_hours && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 13, color: '#64748b' }}>{selected.business_hours}</span>
-              {isOpenNow(selected.business_hours) === true && (
-                <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 중</span>
-              )}
-              {isOpenNow(selected.business_hours) === false && (
-                <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 종료</span>
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 13, color: '#64748b' }}>{selected.business_hours}</span>
+                {isOpenNow(selected.business_hours) === true && (
+                  <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 중</span>
+                )}
+                {isOpenNow(selected.business_hours) === false && (
+                  <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 종료</span>
+                )}
+              </div>
+              {!selected.is_registered && (
+                <p style={{ fontSize: 11, color: '#cbd5e1', marginTop: 2 }}>공공데이터 기준, 실제 영업시간과 다를 수 있어요</p>
               )}
             </div>
           )}

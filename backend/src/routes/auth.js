@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('../config/passport');
-const { register, registerPharmacy, login, logout, me, socialCallback, changePassword, updateProfile, completeSocialSignup } = require('../controllers/authController');
+const { register, registerPharmacy, login, logout, me, socialCallback, changePassword, updateProfile, completeSocialSignup, forgotPassword, resetPassword } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 
 const FAILURE = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=social_login_failed`;
@@ -54,5 +54,9 @@ router.put('/password',            authenticate, changePassword);
 router.put('/profile',             authenticate, updateProfile);
 // 소셜 신규 가입 완성
 router.post('/social/complete',    completeSocialSignup);
+// 비밀번호 재설정 링크 요청 (미로그인)
+router.post('/forgot-password',    forgotPassword);
+// 비밀번호 재설정 (토큰 검증)
+router.post('/reset-password',     resetPassword);
 
 module.exports = router;

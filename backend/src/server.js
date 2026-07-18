@@ -1,7 +1,7 @@
 require('dotenv').config();
 const cron = require('node-cron');
 const app = require('./app');
-const { syncFromPublicApi } = require('./services/publicPharmacyService');
+const { syncFromPublicApi, syncBusinessHoursFromEgen } = require('./services/publicPharmacyService');
 
 const PORT = process.env.PORT || 3000;
 
@@ -32,4 +32,15 @@ cron.schedule('0 18 * * *', async () => {
     }
   }
   console.log('[cron] 공공약국 자동 동기화 완료');
+
+  // EGEN_API_KEY 미설정 시(선택 기능) 조용히 건너뜀
+  if (!process.env.EGEN_API_KEY) return;
+
+  // 지역필터가 동작하지 않아 전국 데이터를 배치 단위로 순회 — 매일 1회 호출로 다음 배치만큼 진행
+  try {
+    const result = await syncBusinessHoursFromEgen();
+    console.log(`[cron] 영업시간(E-Gen) 배치 동기화 완료 — processed:${result.processed} matched:${result.matched} unmatched:${result.unmatched} nextPage:${result.nextPage} isComplete:${result.isComplete}`);
+  } catch (err) {
+    console.error('[cron] 영업시간(E-Gen) 배치 동기화 실패:', err.message);
+  }
 });
