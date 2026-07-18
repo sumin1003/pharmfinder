@@ -796,10 +796,8 @@ function PublicLinkTab() {
   );
 }
 
-// 공공약국 동기화 탭 — 지역을 입력해 HIRA API에서 약국 목록을 가져와 저장, E-Gen API로 영업시간도 동기화
+// 공공약국 동기화 탭 — HIRA API로 약국 목록을, E-Gen API로 영업시간을 각각 전국 배치 단위로 동기화
 function PublicSyncTab() {
-  const [siNm, setSiNm] = useState('');
-  const [sigunguNm, setSigunguNm] = useState('');
   const [syncing, setSyncing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -807,14 +805,13 @@ function PublicSyncTab() {
   const [hoursResult, setHoursResult] = useState(null);
   const [hoursError, setHoursError] = useState('');
 
-  const handleSync = async (e) => {
-    e.preventDefault();
-    if (!siNm.trim()) { setError('시도명을 입력하세요.'); return; }
+  // 약국 목록 동기화 — HIRA API 지역필터(Q0/Q1)가 실제로는 동작하지 않아 전국 데이터를 배치(페이지) 단위로 순회, 누를 때마다 이어서 진행
+  const handleSync = async () => {
     setSyncing(true);
     setResult(null);
     setError('');
     try {
-      const { data } = await api.post('/pharmacies/public/sync', { siNm: siNm.trim(), sigunguNm: sigunguNm.trim() });
+      const { data } = await api.post('/pharmacies/public/sync');
       setResult(data);
     } catch (err) {
       setError(err.response?.data?.message || '동기화에 실패했습니다.');
@@ -837,67 +834,33 @@ function PublicSyncTab() {
     }
   };
 
-  const examples = ['서울특별시', '경기도', '부산광역시', '인천광역시', '대구광역시'];
-
   return (
     <div style={{ maxWidth: 480 }}>
       <p style={{ fontSize: 14, color: '#64748b', marginBottom: 20, lineHeight: 1.6 }}>
-        건강보험심사평가원 약국정보서비스 API에서 지역별 약국을 가져와 지도에 표시할 수 있도록 저장합니다.
-        시군구명은 선택 입력이며, 비워두면 시도 전체를 동기화합니다.
+        건강보험심사평가원 약국정보서비스 API에서 전국 약국 목록을 가져와 지도에 표시할 수 있도록 저장합니다.
+        지역필터가 동작하지 않아(라이브 테스트로 확인) 지역 지정 없이 전국 데이터를 배치 단위로 나눠 처리하며,
+        버튼을 누를 때마다 이어서 진행됩니다 (매일 자동으로도 진행됨).
       </p>
 
-      <form onSubmit={handleSync}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-          <div>
-            <label style={s.formLabel}>시도명 *</label>
-            <input
-              style={s.input}
-              value={siNm}
-              onChange={(e) => setSiNm(e.target.value)}
-              placeholder="예: 서울특별시"
-              disabled={syncing}
-            />
-          </div>
-          <div>
-            <label style={s.formLabel}>시군구명 (선택)</label>
-            <input
-              style={s.input}
-              value={sigunguNm}
-              onChange={(e) => setSigunguNm(e.target.value)}
-              placeholder="예: 강남구"
-              disabled={syncing}
-            />
-          </div>
+      {error && <p style={s.errorText}>{error}</p>}
+
+      {result && (
+        <div style={{ background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14, color: '#16a34a' }}>
+          <p style={{ marginBottom: result.totalCount ? 8 : 0 }}>✅ {result.message}</p>
+          {result.totalCount > 0 && (
+            <div style={{ background: '#bbf7d0', borderRadius: 999, height: 8, overflow: 'hidden' }}>
+              <div style={{
+                width: `${Math.min(100, Math.round((((result.isComplete ? result.totalCount : (result.nextPage - 1) * 100) / result.totalCount) * 100)))}%`,
+                background: '#16a34a', height: '100%',
+              }} />
+            </div>
+          )}
         </div>
+      )}
 
-        <div style={{ marginBottom: 16 }}>
-          <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>빠른 선택:</p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {examples.map((ex) => (
-              <button
-                key={ex}
-                type="button"
-                onClick={() => setSiNm(ex)}
-                style={{ padding: '4px 10px', background: siNm === ex ? '#dcfce7' : '#f1f5f9', color: siNm === ex ? '#16a34a' : '#64748b', border: 'none', borderRadius: 999, fontSize: 12, cursor: 'pointer' }}
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {error && <p style={s.errorText}>{error}</p>}
-
-        {result && (
-          <div style={{ background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14, color: '#16a34a' }}>
-            ✅ {result.message}
-          </div>
-        )}
-
-        <button type="submit" disabled={syncing} style={{ ...s.btnPrimary, opacity: syncing ? 0.7 : 1 }}>
-          {syncing ? '동기화 중...' : '동기화 실행'}
-        </button>
-      </form>
+      <button type="button" onClick={handleSync} disabled={syncing} style={{ ...s.btnPrimary, opacity: syncing ? 0.7 : 1 }}>
+        {syncing ? '동기화 중...' : '다음 배치 실행'}
+      </button>
 
       <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '24px 0' }} />
 

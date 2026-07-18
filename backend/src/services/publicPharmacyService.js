@@ -186,49 +186,77 @@ const searchPublicPharmacies = async (query) => {
   return data || [];
 };
 
-// HIRA API에서 지역별 약국 목록을 가져와 public_pharmacies에 upsert
-const syncFromPublicApi = async ({ siNm, sigunguNm }) => {
+const HIRA_JOB_NAME = 'hira_pharmacy_sync';
+const HIRA_BATCH_PAGES = 10; // 1회 호출당 최대 처리 페이지 수 (Render 응답 타임아웃 회피)
+const HIRA_PAGE_SIZE = 100;
+
+// HIRA API에서 약국 목록을 페이지 단위로 가져와 public_pharmacies에 upsert
+// Q0/Q1(시도/시군구) 파라미터는 문서상 지역 필터지만 라이브 테스트 결과 실제로는 전혀 필터링되지 않음
+// (요청한 지역과 무관하게 항상 동일한 전국 순번 데이터가 반환됨 — E-Gen API와 동일한 문제).
+// 그래서 지역 지정 없이 전국 데이터를 페이지 단위로 순회하며, sync_progress에 다음 시작 페이지를 저장해
+// 호출할 때마다 이어서 처리한다. 전국을 완주하면 1페이지로 되돌아간다 (rolling 갱신).
+const syncFromPublicApi = async () => {
   if (!process.env.HIRA_API_KEY) {
     throw Object.assign(new Error('HIRA API 키가 설정되지 않았습니다.'), { status: 503 });
   }
 
-  // 1페이지(100개)만 가져와 Render 타임아웃 회피
-  const response = await axios.get(HIRA_URL, {
-    params: {
-      serviceKey: process.env.HIRA_API_KEY,
-      Q0: siNm,
-      Q1: sigunguNm || '',
-      numOfRows: 100,
-      pageNo: 1,
-      _type: 'json',
-    },
-    timeout: 15000,
-  });
+  const progress = await getSyncProgress(HIRA_JOB_NAME);
+  let currentPage = progress.next_page || 1;
+  let totalCount = progress.total_count;
 
-  const body = response.data?.response?.body;
-  const rawItems = body?.items?.item;
-  const allItems = rawItems ? (Array.isArray(rawItems) ? rawItems : [rawItems]) : [];
-
-  console.log('[sync] HIRA 응답 수신:', allItems.length, '개');
-  if (allItems.length === 0) return { synced: 0 };
-
+  let processed = 0;
+  let synced = 0;
+  let reachedEnd = false;
   const now = new Date().toISOString();
-  const records = allItems.map((item) => ({
-    hpid: item.ykiho,
-    name: item.yadmNm,
-    address: item.addr || null,
-    phone: item.telno || null,
-    latitude: item.YPos ? parseFloat(item.YPos) : null,
-    longitude: item.XPos ? parseFloat(item.XPos) : null,
-    updated_at: now,
-  }));
 
-  const { error } = await supabase
-    .from('public_pharmacies')
-    .upsert(records, { onConflict: 'hpid' });
+  for (let i = 0; i < HIRA_BATCH_PAGES; i++) {
+    const response = await axios.get(HIRA_URL, {
+      params: {
+        serviceKey: process.env.HIRA_API_KEY,
+        numOfRows: HIRA_PAGE_SIZE,
+        pageNo: currentPage,
+        _type: 'json',
+      },
+      timeout: 15000,
+    });
 
-  if (error) throw error;
-  return { synced: records.length };
+    const body = response.data?.response?.body;
+    totalCount = body?.totalCount ?? totalCount;
+    const rawItems = body?.items?.item;
+    const items = rawItems ? (Array.isArray(rawItems) ? rawItems : [rawItems]) : [];
+
+    if (items.length === 0) { reachedEnd = true; break; }
+
+    processed += items.length;
+    const records = items
+      .filter((item) => item.ykiho)
+      .map((item) => ({
+        hpid: item.ykiho,
+        name: item.yadmNm,
+        address: item.addr || null,
+        phone: item.telno || null,
+        latitude: item.YPos ? parseFloat(item.YPos) : null,
+        longitude: item.XPos ? parseFloat(item.XPos) : null,
+        updated_at: now,
+      }));
+
+    if (records.length > 0) {
+      const { error } = await supabase.from('public_pharmacies').upsert(records, { onConflict: 'hpid' });
+      if (error) throw error;
+      synced += records.length;
+    }
+
+    currentPage++;
+    const pagesTotal = totalCount ? Math.ceil(totalCount / HIRA_PAGE_SIZE) : null;
+    if (pagesTotal && currentPage > pagesTotal) { reachedEnd = true; break; }
+  }
+
+  const nextPage = reachedEnd ? 1 : currentPage;
+  await saveSyncProgress(HIRA_JOB_NAME, nextPage, totalCount);
+
+  console.log(`[hira-sync] 배치 완료 — processed:${processed} synced:${synced} nextPage:${nextPage} isComplete:${reachedEnd}`);
+
+  return { processed, synced, nextPage, totalCount, isComplete: reachedEnd };
 };
 
 // 두 좌표 사이 거리를 km 단위로 계산 (Haversine)

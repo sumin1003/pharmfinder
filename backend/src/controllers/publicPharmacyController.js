@@ -53,15 +53,22 @@ const search = async (req, res, next) => {
 /**
  * POST /api/pharmacies/public/sync
  * 인증: 필요 (admin)
- * 건강보험심사평가원 API에서 지역별 약국을 동기화한다.
+ * 건강보험심사평가원 API에서 약국 목록을 다음 배치(페이지 단위)만큼 동기화한다.
+ * 지역필터가 동작하지 않아 전국 데이터를 순회하며, 호출할 때마다 이어서 진행된다.
  */
 const sync = async (req, res, next) => {
   try {
-    const { siNm, sigunguNm } = req.body;
-    if (!siNm) return res.status(400).json({ message: '시도명(siNm)이 필요합니다.' });
-
-    const result = await publicPharmacyService.syncFromPublicApi({ siNm, sigunguNm });
-    res.json({ message: `${result.synced}개 약국이 동기화됐습니다.`, synced: result.synced });
+    const result = await publicPharmacyService.syncFromPublicApi();
+    const completedCount = result.isComplete ? result.totalCount : (result.nextPage - 1) * 100;
+    const progressText = result.totalCount
+      ? `전체 ${result.totalCount.toLocaleString()}건 중 ${completedCount.toLocaleString()}건 처리`
+      : '';
+    res.json({
+      message: result.isComplete
+        ? `${result.synced}개 동기화 — 전국 순회를 완료하고 처음부터 다시 시작합니다.`
+        : `${result.synced}개 동기화 — ${progressText}`,
+      ...result,
+    });
   } catch (err) {
     next(err);
   }
