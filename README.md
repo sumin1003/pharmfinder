@@ -24,6 +24,7 @@ AI 증상 분석으로 적합한 약을 추천받고, 지도에서 현재 영업
 | 재고 확인 | 가입 약국의 의약품별 재고 현황 및 품절·부족 배지 |
 | 즐겨찾기 | 자주 방문하는 약국 저장·관리 |
 | 소셜 로그인 | 카카오·구글·네이버 OAuth 로그인 지원 |
+| 비밀번호 찾기 | 이메일 링크 기반 재설정 (토큰 30분 만료, 소셜 가입 계정 제외) |
 
 ### 약국 관리자 (pharmacy)
 | 기능 | 설명 |
@@ -42,6 +43,7 @@ AI 증상 분석으로 적합한 약을 추천받고, 지도에서 현재 영업
 | 약품 관리 | 의약품 CRUD |
 | 통계 대시보드 | KPI 4종 개요 (회원 수·약국 수·약품 수·재고 수) |
 | 공공약국 동기화 | HIRA API로 시도/시군구 단위 약국 데이터 수동·자동 동기화 |
+| 영업시간 배치 동기화 | E-Gen API로 전국 약국 영업시간을 페이지 단위로 순회 동기화 (미가입 약국 배지 표시) |
 | 승인 이메일 알림 | 약국 승인·거절 시 자동 이메일 발송 |
 
 ---
@@ -58,14 +60,14 @@ AI 증상 분석으로 적합한 약을 추천받고, 지도에서 현재 영업
 |------|------|
 | 런타임 | Node.js + Express 5 (CommonJS) |
 | 데이터베이스 | Supabase (PostgreSQL) |
-| 인증 | JWT (`jsonwebtoken`) + bcryptjs |
+| 인증 | JWT (`jsonwebtoken`) + bcryptjs, httpOnly 쿠키 발급/검증 (`cookie-parser`) |
 | 소셜 로그인 | Passport.js (Google, Kakao, Naver OAuth) |
 | AI | Groq SDK (LLaMA-3.3-70b) · Anthropic SDK · Google Generative AI |
-| 외부 API | 식약처(MFDS) API · 카카오 로컬 API · HIRA 공공데이터 API |
-| 이메일 | Nodemailer (Gmail SMTP) |
-| 스케줄러 | node-cron (매일 KST 03:00 공공약국 자동 동기화) |
+| 외부 API | 식약처(MFDS) API · 카카오 로컬 API · HIRA 공공데이터 API · E-Gen(국립중앙의료원) API |
+| 이메일 | Nodemailer (Gmail SMTP) — 재고 알림, 약국 승인, 비밀번호 재설정 |
+| 스케줄러 | node-cron (매일 KST 03:00 공공약국·영업시간 자동 동기화) |
 | 파일 업로드 | Multer |
-| 보안 | Helmet · CORS |
+| 보안 | Helmet · CORS · CSRF(X-Requested-With 커스텀 헤더 검증) |
 
 ### 프론트엔드
 ![React](https://img.shields.io/badge/React_19-61DAFB?style=flat&logo=react&logoColor=black)
@@ -97,19 +99,22 @@ PharmFinder/
 │   └── src/
 │       ├── app.js              # Express 앱 (helmet, cors, morgan)
 │       ├── server.js           # 서버 진입점 + node-cron 스케줄러
-│       ├── config/supabase.js  # Supabase 클라이언트 싱글턴
+│       ├── config/
+│       │   ├── supabase.js     # Supabase 클라이언트 싱글턴
+│       │   └── cookie.js       # httpOnly 인증 쿠키 옵션
 │       ├── controllers/        # req/res 처리 (try/catch → next(err))
 │       ├── services/           # 비즈니스 로직 + Supabase 쿼리
 │       ├── routes/             # /api 하위 라우트 통합
 │       └── middleware/
-│           └── auth.js         # authenticate / authorize / requireApprovedPharmacy
+│           ├── auth.js         # authenticate / authorize / requireApprovedPharmacy
+│           └── csrf.js         # 상태변경 요청 X-Requested-With 헤더 검증
 └── frontend/
     └── src/
         ├── App.jsx             # 라우터 + AuthProvider + Layout
-        ├── contexts/           # AuthContext (전역 인증 상태)
+        ├── contexts/           # AuthContext (전역 인증 상태, httpOnly 쿠키 기반)
         ├── components/         # Layout, PrivateRoute 등 공통 컴포넌트
         ├── pages/              # 페이지 컴포넌트
-        └── services/api.js     # Axios 인스턴스 (JWT 인터셉터)
+        └── services/api.js     # Axios 인스턴스 (withCredentials, CSRF 헤더)
 ```
 
 ---
@@ -119,10 +124,12 @@ PharmFinder/
 ```
 POST   /api/auth/register              일반 회원가입
 POST   /api/auth/pharmacy/register     약국 사업자 회원가입
-POST   /api/auth/login                 로그인 (JWT 반환)
+POST   /api/auth/login                 로그인 (httpOnly 쿠키로 JWT 발급)
 GET    /api/auth/me                    내 정보 조회
 PUT    /api/auth/profile               프로필 수정
 PUT    /api/auth/password              비밀번호 변경
+POST   /api/auth/forgot-password       비밀번호 재설정 링크 요청
+POST   /api/auth/reset-password        비밀번호 재설정 (토큰 검증)
 
 GET    /api/auth/kakao                 카카오 OAuth
 GET    /api/auth/google                구글 OAuth
@@ -132,10 +139,11 @@ GET    /api/medicines/search?q=        의약품 검색
 GET    /api/medicines/:id              의약품 상세
 POST   /api/medicines/ai-recommend     AI 증상 기반 추천
 
-GET    /api/pharmacies/public/nearby   주변 공공약국 (카카오 로컬)
+GET    /api/pharmacies/public/nearby   주변 공공약국 (카카오 로컬, E-Gen 영업시간 반영)
 GET    /api/pharmacies/:id             가입 약국 상세 + 재고
 POST   /api/pharmacies/inventory       재고 등록·수정
 POST   /api/pharmacies/inventory/csv   CSV 재고 일괄 업로드
+POST   /api/pharmacies/public/sync-hours  E-Gen 영업시간 배치 동기화 (admin)
 
 GET    /api/admin/*                    관리자 전용 (admin 역할 필요)
 ```
@@ -172,6 +180,7 @@ GROQ_API_KEY=
 MFDS_API_KEY=
 KAKAO_REST_API_KEY=
 HIRA_API_KEY=
+EGEN_API_KEY=            # 선택 — 미설정 시 영업시간 배치 동기화만 비활성화
 
 KAKAO_CLIENT_ID=
 GOOGLE_CLIENT_ID=
