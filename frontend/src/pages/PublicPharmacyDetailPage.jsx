@@ -1,22 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import { isOpenNow } from '../utils/businessHours';
 
-// 공공데이터 약국 상세 — 비가입 약국은 기본 정보만, 가입+연결된 약국은 재고 목록도 표시
+// 공공데이터 약국 상세 — 비가입 약국은 기본 정보만, 가입+연결된 약국은 재고 목록·영업시간·즐겨찾기도 표시
 export default function PublicPharmacyDetailPage() {
   const { id } = useParams();
   const { state } = useLocation();
   const [pharmacy, setPharmacy] = useState(state?.pharmacy || null);
   const [loading, setLoading] = useState(!state?.pharmacy);
+  const [favorited, setFavorited] = useState(false);
+  const [loginMsg, setLoginMsg] = useState(false);
+  const { user } = useAuth();
   const navigate = useNavigate();
 
+  // 지도에서 state로 넘어온 값은 카카오 응답 기반이라 재고 목록이 없으므로,
+  // 화면은 바로 보여주되 백그라운드에서 전체 상세(재고 포함)를 다시 조회해 덮어씀
   useEffect(() => {
-    if (state?.pharmacy) return;
     api.get(`/pharmacies/public/${id}`)
       .then((res) => setPharmacy(res.data))
-      .catch(() => navigate('/map'))
+      .catch(() => { if (!state?.pharmacy) navigate('/map'); })
       .finally(() => setLoading(false));
   }, [id, navigate, state]);
+
+  // 가입 약국(linked_pharmacy_id 존재)이고 로그인 상태면 기존 즐겨찾기 여부를 조회해 별 표시 상태를 맞춤
+  useEffect(() => {
+    if (!user || !pharmacy?.linked_pharmacy_id) return;
+    api.get('/pharmacies/my/favorites')
+      .then((res) => setFavorited(res.data.some((f) => f.pharmacy_id === pharmacy.linked_pharmacy_id)))
+      .catch(() => {});
+  }, [user, pharmacy?.linked_pharmacy_id]);
+
+  // 즐겨찾기 토글 처리 — 비로그인 시 안내 메시지 표시, 로그인 상태면 즐겨찾기 API 호출
+  const handleFavorite = async () => {
+    if (!user) {
+      setLoginMsg(true);
+      setTimeout(() => setLoginMsg(false), 3000);
+      return;
+    }
+    try {
+      const res = await api.post(`/pharmacies/${pharmacy.linked_pharmacy_id}/favorite`);
+      setFavorited(res.data.favorited);
+    } catch { /* 즐겨찾기 실패 시 무시 */ }
+  };
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -42,15 +69,37 @@ export default function PublicPharmacyDetailPage() {
       {/* 약국 기본 정보 */}
       <div style={{ background: 'white', borderRadius: 20, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', padding: '24px', marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a' }}>{pharmacy.name}</h1>
-          {pharmacy.is_registered ? (
-            <span style={{ fontSize: 12, background: '#dcfce7', color: '#16a34a', padding: '4px 10px', borderRadius: 999, fontWeight: 500, whiteSpace: 'nowrap' }}>
-              PharmFinder 가입
-            </span>
-          ) : (
-            <span style={{ fontSize: 12, background: '#f1f5f9', color: '#94a3b8', padding: '4px 10px', borderRadius: 999, fontWeight: 500, whiteSpace: 'nowrap' }}>
-              공공데이터 약국
-            </span>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>{pharmacy.name}</h1>
+            {pharmacy.is_registered ? (
+              <span style={{ fontSize: 12, background: '#dcfce7', color: '#16a34a', padding: '4px 10px', borderRadius: 999, fontWeight: 500, whiteSpace: 'nowrap' }}>
+                PharmFinder 가입
+              </span>
+            ) : (
+              <span style={{ fontSize: 12, background: '#f1f5f9', color: '#94a3b8', padding: '4px 10px', borderRadius: 999, fontWeight: 500, whiteSpace: 'nowrap' }}>
+                공공데이터 약국
+              </span>
+            )}
+          </div>
+          {pharmacy.is_registered && (
+            <div style={{ textAlign: 'right' }}>
+              <button
+                onClick={handleFavorite}
+                style={{
+                  width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: 'none', cursor: 'pointer', fontSize: 18,
+                  background: favorited ? '#fef3c7' : '#f1f5f9',
+                  color: favorited ? '#f59e0b' : '#cbd5e1',
+                }}
+              >
+                ★
+              </button>
+              {loginMsg && (
+                <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, whiteSpace: 'nowrap' }}>
+                  로그인 후 이용 가능
+                </p>
+              )}
+            </div>
           )}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -63,6 +112,24 @@ export default function PublicPharmacyDetailPage() {
             <p style={{ fontSize: 14, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
               <span>📞</span>{pharmacy.phone}
             </p>
+          )}
+          {pharmacy.business_hours && (() => {
+            const open = isOpenNow(pharmacy.business_hours);
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                <span style={{
+                  fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
+                  background: open ? '#dcfce7' : '#f1f5f9',
+                  color: open ? '#16a34a' : '#64748b',
+                }}>
+                  {open ? '영업 중' : '영업 종료'}
+                </span>
+                <span style={{ fontSize: 13, color: '#64748b' }}>{pharmacy.business_hours}</span>
+              </div>
+            );
+          })()}
+          {!pharmacy.is_registered && pharmacy.business_hours && (
+            <p style={{ fontSize: 11, color: '#cbd5e1', marginTop: 2 }}>공공데이터 기준, 실제 영업시간과 다를 수 있어요</p>
           )}
         </div>
       </div>
