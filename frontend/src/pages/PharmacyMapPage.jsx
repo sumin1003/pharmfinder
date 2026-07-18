@@ -34,6 +34,9 @@ export default function PharmacyMapPage() {
   const [kakaoLoaded, setKakaoLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [activeTab, setActiveTab] = useState('map'); // 'map' | 'list' (모바일 전용)
+  // 카카오 실시간 검색은 좌표+이름 매칭이 실패하면 가입 약국도 놓칠 수 있어,
+  // 매칭에 의존하지 않는 "가입 약국만" 목록(DB 직접 조회)을 별도로 제공
+  const [registeredOnly, setRegisteredOnly] = useState(false);
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const overlaysRef = useRef([]);
@@ -73,8 +76,14 @@ export default function PharmacyMapPage() {
     try {
       const params = { lat: myLocation.lat, lng: myLocation.lng, radius: 3 };
       if (medicineId) params.medicineId = medicineId;
-      const res = await api.get('/pharmacies/public/nearby', { params });
-      setPharmacies(res.data);
+      if (registeredOnly) {
+        // 가입 약국 전용 조회 — pharmacies 테이블을 직접 조회하므로 카카오 매칭 실패와 무관하게 항상 정확함
+        const res = await api.get('/pharmacies/nearby', { params });
+        setPharmacies(res.data.map((p) => ({ ...p, is_registered: true, linked_pharmacy_id: p.id })));
+      } else {
+        const res = await api.get('/pharmacies/public/nearby', { params });
+        setPharmacies(res.data);
+      }
     } catch {
       setError('약국 정보를 불러오지 못했습니다.');
     } finally {
@@ -102,6 +111,12 @@ export default function PharmacyMapPage() {
     fetchPharmacies();
     initMap();
   }, [myLocation, kakaoLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // "가입 약국만 보기" 토글 시 재조회
+  useEffect(() => {
+    if (!myLocation) return;
+    fetchPharmacies();
+  }, [registeredOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!mapInstance.current || pharmacies.length === 0) return;
@@ -167,7 +182,7 @@ export default function PharmacyMapPage() {
           {medicineId ? '재고 있는 약국' : '주변 약국'}
           <span style={{ marginLeft: 8, fontSize: 14, color: '#94a3b8', fontWeight: 400 }}>{pharmacies.length}곳</span>
         </h2>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
           {markerLegend.map(({ color, label }) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
@@ -175,6 +190,17 @@ export default function PharmacyMapPage() {
             </div>
           ))}
         </div>
+        <button
+          onClick={() => setRegisteredOnly((v) => !v)}
+          style={{
+            fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+            border: registeredOnly ? 'none' : '1px solid #e2e8f0',
+            background: registeredOnly ? '#059669' : 'white',
+            color: registeredOnly ? 'white' : '#64748b',
+          }}
+        >
+          {registeredOnly ? '✓ 가입 약국만 보는 중' : '가입 약국만 보기'}
+        </button>
       </div>
 
       {loading && <p style={{ padding: 16, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>검색 중...</p>}
