@@ -24,15 +24,19 @@ export default function PublicPharmacyDetailPage() {
       .finally(() => setLoading(false));
   }, [id, navigate, state]);
 
-  // 가입 약국(linked_pharmacy_id 존재)이고 로그인 상태면 기존 즐겨찾기 여부를 조회해 별 표시 상태를 맞춤
+  // 로그인 상태면 기존 즐겨찾기 여부를 조회해 별 표시 상태를 맞춤 (가입 약국은 pharmacy_id, 미가입 약국은 public_pharmacy_id 기준)
   useEffect(() => {
-    if (!user || !pharmacy?.linked_pharmacy_id) return;
+    if (!user || !pharmacy) return;
     api.get('/pharmacies/my/favorites')
-      .then((res) => setFavorited(res.data.some((f) => f.pharmacy_id === pharmacy.linked_pharmacy_id)))
+      .then((res) => setFavorited(res.data.some((f) => (
+        pharmacy.linked_pharmacy_id
+          ? f.pharmacy_id === pharmacy.linked_pharmacy_id
+          : f.public_pharmacy_id === pharmacy.id
+      ))))
       .catch(() => {});
-  }, [user, pharmacy?.linked_pharmacy_id]);
+  }, [user, pharmacy]);
 
-  // 즐겨찾기 토글 처리 — 비로그인 시 안내 메시지 표시, 로그인 상태면 즐겨찾기 API 호출
+  // 즐겨찾기 토글 처리 — 비로그인 시 안내 메시지 표시, 로그인 상태면 가입/미가입 약국에 맞는 엔드포인트 호출
   const handleFavorite = async () => {
     if (!user) {
       setLoginMsg(true);
@@ -40,7 +44,10 @@ export default function PublicPharmacyDetailPage() {
       return;
     }
     try {
-      const res = await api.post(`/pharmacies/${pharmacy.linked_pharmacy_id}/favorite`);
+      const url = pharmacy.linked_pharmacy_id
+        ? `/pharmacies/${pharmacy.linked_pharmacy_id}/favorite`
+        : `/pharmacies/public/${pharmacy.id}/favorite`;
+      const res = await api.post(url);
       setFavorited(res.data.favorited);
     } catch { /* 즐겨찾기 실패 시 무시 */ }
   };
@@ -81,26 +88,24 @@ export default function PublicPharmacyDetailPage() {
               </span>
             )}
           </div>
-          {pharmacy.is_registered && (
-            <div style={{ textAlign: 'right' }}>
-              <button
-                onClick={handleFavorite}
-                style={{
-                  width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: 'none', cursor: 'pointer', fontSize: 18,
-                  background: favorited ? '#fef3c7' : '#f1f5f9',
-                  color: favorited ? '#f59e0b' : '#cbd5e1',
-                }}
-              >
-                ★
-              </button>
-              {loginMsg && (
-                <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, whiteSpace: 'nowrap' }}>
-                  로그인 후 이용 가능
-                </p>
-              )}
-            </div>
-          )}
+          <div style={{ textAlign: 'right' }}>
+            <button
+              onClick={handleFavorite}
+              style={{
+                width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: 'none', cursor: 'pointer', fontSize: 18,
+                background: favorited ? '#fef3c7' : '#f1f5f9',
+                color: favorited ? '#f59e0b' : '#cbd5e1',
+              }}
+            >
+              ★
+            </button>
+            {loginMsg && (
+              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, whiteSpace: 'nowrap' }}>
+                로그인 후 이용 가능
+              </p>
+            )}
+          </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {pharmacy.address && (

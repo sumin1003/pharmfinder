@@ -66,12 +66,13 @@ const getNearbyPublicPharmacies = async ({ lat, lng, radius = 3, medicineId }) =
   const lngDeltaDeg = latDeltaDeg / Math.cos((lat * Math.PI) / 180);
   const { data: candidates } = await supabase
     .from('public_pharmacies')
-    .select('hpid, name, latitude, longitude, linked_pharmacy_id, business_hours_weekly')
+    .select('id, hpid, name, latitude, longitude, linked_pharmacy_id, business_hours_weekly')
     .gte('latitude', lat - latDeltaDeg).lte('latitude', lat + latDeltaDeg)
     .gte('longitude', lng - lngDeltaDeg).lte('longitude', lng + lngDeltaDeg);
 
   const linkedMap = new Map();
   const weeklyHoursMap = new Map();
+  const publicIdMap = new Map();
   for (const d of kakaoItems) {
     const dLat = parseFloat(d.y);
     const dLng = parseFloat(d.x);
@@ -85,6 +86,7 @@ const getNearbyPublicPharmacies = async ({ lat, lng, radius = 3, medicineId }) =
     if (!match) continue;
     linkedMap.set(d.id, match.linked_pharmacy_id);
     weeklyHoursMap.set(d.id, match.business_hours_weekly);
+    publicIdMap.set(d.id, match.id);
   }
   const registeredIds = [...new Set([...linkedMap.values()].filter(Boolean))];
 
@@ -125,6 +127,8 @@ const getNearbyPublicPharmacies = async ({ lat, lng, radius = 3, medicineId }) =
         latitude: parseFloat(d.y),
         longitude: parseFloat(d.x),
         linked_pharmacy_id: linkedPharmacyId,
+        // public_pharmacies와 매칭된 경우에만 채워짐 — 즐겨찾기(미가입 약국) 대상 식별에 사용
+        public_pharmacy_id: publicIdMap.get(d.id) || null,
         distance: parseInt(d.distance, 10) / 1000,
         is_registered: !!linkedPharmacyId,
         has_inventory: linkedPharmacyId ? anyInventorySet.has(linkedPharmacyId) : false,
@@ -400,6 +404,24 @@ const unlinkPharmacy = async (publicPharmacyId) => {
   return data;
 };
 
+// 미가입(공공데이터) 약국 즐겨찾기 토글: 이미 등록되어 있으면 삭제, 없으면 추가
+const toggleFavoritePublic = async (userId, publicPharmacyId) => {
+  const { data: existing } = await supabase
+    .from('favorites')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('public_pharmacy_id', publicPharmacyId)
+    .single();
+
+  if (existing) {
+    await supabase.from('favorites').delete().eq('id', existing.id);
+    return { favorited: false };
+  }
+
+  await supabase.from('favorites').insert({ user_id: userId, public_pharmacy_id: publicPharmacyId });
+  return { favorited: true };
+};
+
 module.exports = {
   getNearbyPublicPharmacies,
   getPublicPharmacyById,
@@ -409,4 +431,5 @@ module.exports = {
   linkPharmacy,
   linkSelf,
   unlinkPharmacy,
+  toggleFavoritePublic,
 };

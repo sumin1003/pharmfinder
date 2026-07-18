@@ -290,11 +290,11 @@ const toggleFavorite = async (userId, pharmacyId) => {
   return { favorited: true };
 };
 
-// 로그인한 사용자의 즐겨찾기 약국 목록을 약국 기본 정보와 함께 조회
+// 로그인한 사용자의 즐겨찾기 약국 목록을 약국 기본 정보와 함께 조회 (가입 약국 + 미가입/공공데이터 약국 모두 포함)
 const getFavorites = async (userId) => {
   const { data, error } = await supabase
     .from('favorites')
-    .select('*, pharmacies(id, name, address, phone)')
+    .select('*, pharmacies(id, name, address, phone), public_pharmacies(id, name, address, phone)')
     .eq('user_id', userId);
 
   if (error) throw error;

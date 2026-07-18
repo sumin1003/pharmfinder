@@ -47,12 +47,15 @@ export default function FavoritesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // 즐겨찾기 해제 — 토글 API 호출 후 목록에서 즉시 제거
-  const handleRemove = async (pharmacyId) => {
-    setRemovingId(pharmacyId);
+  // 즐겨찾기 해제 — 가입/미가입 약국에 맞는 토글 API 호출 후 목록에서 즉시 제거
+  const handleRemove = async (fav) => {
+    const isPublic = !fav.pharmacies;
+    const targetId = isPublic ? fav.public_pharmacies.id : fav.pharmacies.id;
+    setRemovingId(fav.id);
     try {
-      await api.post(`/pharmacies/${pharmacyId}/favorite`);
-      setFavorites((prev) => prev.filter((f) => f.pharmacies?.id !== pharmacyId));
+      const url = isPublic ? `/pharmacies/public/${targetId}/favorite` : `/pharmacies/${targetId}/favorite`;
+      await api.post(url);
+      setFavorites((prev) => prev.filter((f) => f.id !== fav.id));
     } catch {
       // 실패 시 그대로 유지
     } finally {
@@ -78,19 +81,20 @@ export default function FavoritesPage() {
           <p style={s.count}>총 {favorites.length}개</p>
           <div style={s.grid}>
             {favorites.map((fav) => {
-              const p = fav.pharmacies;
+              const p = fav.pharmacies || fav.public_pharmacies;
               if (!p) return null;
+              const link = fav.pharmacies ? `/pharmacies/${p.id}` : `/pharmacies/public/${p.id}`;
               return (
                 <div key={fav.id} style={s.card}>
                   <div style={s.cardLeft}>
-                    <Link to={`/pharmacies/${p.id}`} style={s.name}>{p.name}</Link>
+                    <Link to={link} style={s.name}>{p.name}</Link>
                     <p style={s.address}>{p.address}</p>
                     {p.phone && <p style={s.phone}>{p.phone}</p>}
                   </div>
                   <button
-                    style={{ ...s.removeBtn, opacity: removingId === p.id ? 0.5 : 1 }}
-                    disabled={removingId === p.id}
-                    onClick={() => handleRemove(p.id)}
+                    style={{ ...s.removeBtn, opacity: removingId === fav.id ? 0.5 : 1 }}
+                    disabled={removingId === fav.id}
+                    onClick={() => handleRemove(fav)}
                   >
                     해제
                   </button>

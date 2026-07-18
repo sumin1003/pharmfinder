@@ -20,6 +20,8 @@ router.post('/public/sync-hours', authenticate, authorize('admin'), publicPharma
 router.get('/public/:id',        publicPharmacyController.getById);
 router.put('/public/:id/link',   authenticate, authorize('admin'), publicPharmacyController.link);
 router.delete('/public/:id/link', authenticate, authorize('admin'), publicPharmacyController.unlink);
+// 미가입(공공데이터) 약국 즐겨찾기 토글
+router.post('/public/:id/favorite', authenticate, publicPharmacyController.toggleFavorite);
 // 특정 약국 상세 조회
 router.get('/:id',             pharmacyController.getById);
 // 특정 약국의 재고 목록 조회

@@ -148,9 +148,11 @@ export default function PharmacyMapPage() {
   }, [pharmacies]);
 
   // 약국 클릭 시 이동 경로 결정: 가입 약국이면 기존 상세 페이지, 아니면 공공약국 상세 페이지
+  // public_pharmacy_id(실제 DB UUID)가 있으면 그걸로 이동해야 상세 페이지에서 재조회·즐겨찾기가 정상 동작함
+  // (카카오 장소ID는 DB 조회 키로 쓸 수 없어, 매칭 실패 시에만 부득이하게 폴백으로 사용)
   const handleDetail = (p) => {
     if (p.is_registered && p.linked_pharmacy_id) navigate(`/pharmacies/${p.linked_pharmacy_id}`);
-    else navigate(`/pharmacies/public/${p.id}`, { state: { pharmacy: p } });
+    else navigate(`/pharmacies/public/${p.public_pharmacy_id || p.id}`, { state: { pharmacy: p } });
   };
 
   const markerLegend = [

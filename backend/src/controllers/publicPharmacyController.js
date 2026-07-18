@@ -139,4 +139,18 @@ const unlink = async (req, res, next) => {
   }
 };
 
-module.exports = { getNearby, getById, search, sync, syncHours, linkSelf, link, unlink };
+/**
+ * POST /api/pharmacies/public/:id/favorite
+ * 인증: 필요
+ * 미가입(공공데이터) 약국 즐겨찾기를 토글한다.
+ */
+const toggleFavorite = async (req, res, next) => {
+  try {
+    const result = await publicPharmacyService.toggleFavoritePublic(req.user.id, req.params.id);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getNearby, getById, search, sync, syncHours, linkSelf, link, unlink, toggleFavorite };
