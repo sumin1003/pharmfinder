@@ -301,11 +301,21 @@ const syncBusinessHoursFromEgen = async () => {
   let totalCount = progress.total_count;
 
   // 매칭 후보 전체를 배치 시작 시 1회만 조회 (지역필터가 없어 전국 데이터를 상대해야 함)
-  const { data: candidates, error: candidateError } = await supabase
-    .from('public_pharmacies')
-    .select('id, hpid, name, address, latitude, longitude');
+  // Supabase/PostgREST는 .range() 없이 select()하면 기본적으로 최대 1000행만 반환하므로,
+  // 전체 행을 다 가져오려면 1000건 단위로 페이지네이션해서 누적해야 한다
+  // (이 제한을 몰라서 전국 데이터 중 항상 첫 1000건만 매칭 대상으로 삼던 버그가 있었음 — 실측으로 확인)
+  const candidates = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data: page, error: candidateError } = await supabase
+      .from('public_pharmacies')
+      .select('id, hpid, name, address, latitude, longitude')
+      .range(offset, offset + 999);
 
-  if (candidateError) throw candidateError;
+    if (candidateError) throw candidateError;
+    if (!page || page.length === 0) break;
+    candidates.push(...page);
+    if (page.length < 1000) break;
+  }
 
   let matched = 0;
   let unmatched = 0;
