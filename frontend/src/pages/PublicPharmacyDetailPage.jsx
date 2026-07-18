@@ -12,6 +12,11 @@ export default function PublicPharmacyDetailPage() {
   const [loading, setLoading] = useState(!state?.pharmacy);
   const [favorited, setFavorited] = useState(false);
   const [loginMsg, setLoginMsg] = useState(false);
+  const [favoriteError, setFavoriteError] = useState('');
+  // URL의 :id가 실제 public_pharmacies 행과 일치함이 API로 확인된 경우에만 true.
+  // 지도에서 카카오-DB 매칭에 실패한 약국은 이 확인이 영영 실패하므로(카카오 장소ID로는 조회 불가),
+  // 미가입 약국의 즐겨찾기 가능 여부를 이 값으로 판단한다
+  const [verified, setVerified] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -19,14 +24,14 @@ export default function PublicPharmacyDetailPage() {
   // 화면은 바로 보여주되 백그라운드에서 전체 상세(재고 포함)를 다시 조회해 덮어씀
   useEffect(() => {
     api.get(`/pharmacies/public/${id}`)
-      .then((res) => setPharmacy(res.data))
+      .then((res) => { setPharmacy(res.data); setVerified(true); })
       .catch(() => { if (!state?.pharmacy) navigate('/map'); })
       .finally(() => setLoading(false));
   }, [id, navigate, state]);
 
   // 로그인 상태면 기존 즐겨찾기 여부를 조회해 별 표시 상태를 맞춤 (가입 약국은 pharmacy_id, 미가입 약국은 public_pharmacy_id 기준)
   useEffect(() => {
-    if (!user || !pharmacy) return;
+    if (!user || !pharmacy || (!pharmacy.linked_pharmacy_id && !verified)) return;
     api.get('/pharmacies/my/favorites')
       .then((res) => setFavorited(res.data.some((f) => (
         pharmacy.linked_pharmacy_id
@@ -34,13 +39,18 @@ export default function PublicPharmacyDetailPage() {
           : f.public_pharmacy_id === pharmacy.id
       ))))
       .catch(() => {});
-  }, [user, pharmacy]);
+  }, [user, pharmacy, verified]);
 
-  // 즐겨찾기 토글 처리 — 비로그인 시 안내 메시지 표시, 로그인 상태면 가입/미가입 약국에 맞는 엔드포인트 호출
+  // 즐겨찾기 토글 처리 — 비로그인 시 안내 메시지, 매칭 안 된 미가입 약국이면 안내 메시지, 그 외엔 API 호출
   const handleFavorite = async () => {
     if (!user) {
       setLoginMsg(true);
       setTimeout(() => setLoginMsg(false), 3000);
+      return;
+    }
+    if (!pharmacy.linked_pharmacy_id && !verified) {
+      setFavoriteError('이 약국은 아직 공공데이터와 매칭되지 않아 즐겨찾기를 지원하지 않습니다.');
+      setTimeout(() => setFavoriteError(''), 4000);
       return;
     }
     try {
@@ -49,7 +59,10 @@ export default function PublicPharmacyDetailPage() {
         : `/pharmacies/public/${pharmacy.id}/favorite`;
       const res = await api.post(url);
       setFavorited(res.data.favorited);
-    } catch { /* 즐겨찾기 실패 시 무시 */ }
+    } catch {
+      setFavoriteError('즐겨찾기 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      setTimeout(() => setFavoriteError(''), 4000);
+    }
   };
 
   if (loading) return (
@@ -103,6 +116,11 @@ export default function PublicPharmacyDetailPage() {
             {loginMsg && (
               <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, whiteSpace: 'nowrap' }}>
                 로그인 후 이용 가능
+              </p>
+            )}
+            {favoriteError && (
+              <p style={{ fontSize: 11, color: '#f87171', marginTop: 4, maxWidth: 140, textAlign: 'right' }}>
+                {favoriteError}
               </p>
             )}
           </div>

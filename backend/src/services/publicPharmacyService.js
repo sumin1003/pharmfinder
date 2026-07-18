@@ -405,20 +405,32 @@ const unlinkPharmacy = async (publicPharmacyId) => {
 };
 
 // 미가입(공공데이터) 약국 즐겨찾기 토글: 이미 등록되어 있으면 삭제, 없으면 추가
+// publicPharmacyId가 실제 public_pharmacies 행을 가리키지 않으면(카카오 장소ID 등 잘못된 값) 저장할 대상이 없으므로 에러로 처리한다
 const toggleFavoritePublic = async (userId, publicPharmacyId) => {
+  const { data: target, error: targetError } = await supabase
+    .from('public_pharmacies')
+    .select('id')
+    .eq('id', publicPharmacyId)
+    .maybeSingle();
+
+  if (targetError || !target)
+    throw Object.assign(new Error('즐겨찾기할 수 없는 약국입니다. (공공데이터와 매칭되지 않음)'), { status: 404 });
+
   const { data: existing } = await supabase
     .from('favorites')
     .select('id')
     .eq('user_id', userId)
     .eq('public_pharmacy_id', publicPharmacyId)
-    .single();
+    .maybeSingle();
 
   if (existing) {
-    await supabase.from('favorites').delete().eq('id', existing.id);
+    const { error } = await supabase.from('favorites').delete().eq('id', existing.id);
+    if (error) throw error;
     return { favorited: false };
   }
 
-  await supabase.from('favorites').insert({ user_id: userId, public_pharmacy_id: publicPharmacyId });
+  const { error } = await supabase.from('favorites').insert({ user_id: userId, public_pharmacy_id: publicPharmacyId });
+  if (error) throw error;
   return { favorited: true };
 };
 
