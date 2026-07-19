@@ -1,4 +1,4 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env'), quiet: true });
 const bcrypt = require('bcryptjs');
 const { createClient } = require('@supabase/supabase-js');
 

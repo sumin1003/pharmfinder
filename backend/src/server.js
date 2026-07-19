@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const cron = require('node-cron');
 const app = require('./app');
 const { syncFromPublicApi, syncBusinessHoursFromEgen } = require('./services/publicPharmacyService');
