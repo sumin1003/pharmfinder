@@ -3,11 +3,18 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { isOpenNow } from '../utils/businessHours';
 
-// 마커 색상: 재고 관리 중(green) / 가입 약국(yellow) / 공공데이터만(gray)
+// 마커 색상: 재고 관리 중(blue, 지도의 영업중 초록과 구분) / 가입 약국(yellow) / 공공데이터만(gray) — 리스트 패널·범례·팝업 배지에서 사용
 const MARKER_COLORS = {
-  active: '#10b981',
+  active: '#3b82f6',
   registered: '#f59e0b',
   public: '#94a3b8',
+};
+
+// 지도 압정 색상: 영업중(green) / 영업종료(연한 red) / 영업시간 정보 없음(gray) — 지도 마커 전용
+const MAP_PIN_COLORS = {
+  open: '#10b981',
+  closed: '#f87171',
+  unknown: '#94a3b8',
 };
 
 function makeMarkerEl(color) {
@@ -130,9 +137,10 @@ export default function PharmacyMapPage() {
       if (!p.latitude || !p.longitude) return;
       const pos = new kakao.maps.LatLng(p.latitude, p.longitude);
 
-      let color = MARKER_COLORS.public;
-      if (p.is_registered && p.has_inventory) color = MARKER_COLORS.active;
-      else if (p.is_registered) color = MARKER_COLORS.registered;
+      const openStatus = isOpenNow(p.business_hours);
+      let color = MAP_PIN_COLORS.unknown;
+      if (openStatus === true) color = MAP_PIN_COLORS.open;
+      else if (openStatus === false) color = MAP_PIN_COLORS.closed;
 
       const el = makeMarkerEl(color);
       el.addEventListener('click', () => setSelected(p));
@@ -237,7 +245,7 @@ export default function PharmacyMapPage() {
                 <span style={{ fontSize: 12, color: '#10b981' }}>{p.distance.toFixed(1)}km</span>
               )}
               {p.is_registered && p.has_inventory && (
-                <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '1px 6px', borderRadius: 999 }}>재고 관리 중</span>
+                <span style={{ fontSize: 11, background: '#dbeafe', color: '#2563eb', padding: '1px 6px', borderRadius: 999 }}>재고 관리 중</span>
               )}
               {p.is_registered && !p.has_inventory && (
                 <span style={{ fontSize: 11, background: '#fef3c7', color: '#d97706', padding: '1px 6px', borderRadius: 999 }}>가입 약국</span>
@@ -273,6 +281,28 @@ export default function PharmacyMapPage() {
         </div>
       )}
 
+      {/* 지도 압정 색상 범례 */}
+      {kakaoLoaded && !kakaoError && (
+        <div style={{
+          position: 'absolute', bottom: 12, right: 12,
+          background: 'rgba(255,255,255,0.92)', borderRadius: 10,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          padding: '8px 10px', zIndex: 5,
+          display: 'flex', flexDirection: 'column', gap: 4,
+        }}>
+          {[
+            { color: MAP_PIN_COLORS.open, label: '영업중' },
+            { color: MAP_PIN_COLORS.closed, label: '영업종료' },
+            { color: MAP_PIN_COLORS.unknown, label: '정보없음' },
+          ].map(({ color, label }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+              <span style={{ fontSize: 10, color: '#475569' }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* 선택된 약국 팝업 */}
       {selected && (
         <div style={{
@@ -284,7 +314,7 @@ export default function PharmacyMapPage() {
             <div>
               <h3 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{selected.name}</h3>
               {selected.is_registered && selected.has_inventory && (
-                <span style={{ fontSize: 12, background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: 999 }}>재고 관리 중</span>
+                <span style={{ fontSize: 12, background: '#dbeafe', color: '#2563eb', padding: '2px 8px', borderRadius: 999 }}>재고 관리 중</span>
               )}
               {selected.is_registered && !selected.has_inventory && (
                 <span style={{ fontSize: 12, background: '#fef3c7', color: '#d97706', padding: '2px 8px', borderRadius: 999 }}>가입 약국</span>
