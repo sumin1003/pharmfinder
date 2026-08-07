@@ -17,6 +17,17 @@ const MAP_PIN_COLORS = {
   unknown: '#94a3b8',
 };
 
+// 줌 레벨(카카오맵 level, 1=많이 확대 ~ 14=많이 축소)에 따라 검색 반경(km)을 계산
+// 레벨 5(초기 줌)일 때 3km로 기존 기본값과 동일하게 맞춤, 상한 15km로 대량 조회 방지
+const RADIUS_BY_LEVEL = { 1: 0.5, 2: 0.5, 3: 1, 4: 2, 5: 3, 6: 4, 7: 6, 8: 8, 9: 10, 10: 10 };
+const MIN_RADIUS = 0.5;
+const MAX_RADIUS = 15;
+
+function getRadiusForLevel(level) {
+  if (level <= 1) return MIN_RADIUS;
+  return RADIUS_BY_LEVEL[level] ?? MAX_RADIUS;
+}
+
 function makeMarkerEl(color) {
   const el = document.createElement('div');
   el.style.cssText = `
@@ -37,7 +48,11 @@ export default function PharmacyMapPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [kakaoError, setKakaoError] = useState('');
+  // myLocation: GPS 실제 위치 (최초 1회 고정, 파란 점 마커·"내 위치로 돌아가기" 목적지)
   const [myLocation, setMyLocation] = useState(null);
+  // searchArea: 약국 조회 기준 좌표+반경 — 지도 이동/줌(idle)마다 갱신
+  const [searchArea, setSearchArea] = useState(null);
+  const [panning, setPanning] = useState(false); // 이동/줌으로 인한 재조회 중 여부 (최초 loading과 구분)
   const [kakaoLoaded, setKakaoLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [activeTab, setActiveTab] = useState('map'); // 'map' | 'list' (모바일 전용)
@@ -47,9 +62,11 @@ export default function PharmacyMapPage() {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const overlaysRef = useRef([]);
-  const [searchParams] = useSearchParams();
+  const requestSeqRef = useRef(0); // 응답 순서 역전 방지 — 가장 마지막 요청의 응답만 반영
+  const firstFetchDoneRef = useRef(false); // 최초 조회 여부 (loading vs panning 인디케이터 분기)
+  const [urlSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const medicineId = searchParams.get('medicine');
+  const medicineId = urlSearchParams.get('medicine');
 
   // 화면 너비 변경 감지
   useEffect(() => {
@@ -73,28 +90,52 @@ export default function PharmacyMapPage() {
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
-      (pos) => setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setMyLocation({ lat: 37.5665, lng: 126.978 }),
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setMyLocation(loc);
+        setSearchArea({ ...loc, radius: 3 });
+      },
+      () => {
+        const loc = { lat: 37.5665, lng: 126.978 };
+        setMyLocation(loc);
+        setSearchArea({ ...loc, radius: 3 });
+      },
     );
   }, []);
 
   const fetchPharmacies = async () => {
-    setLoading(true);
+    const seq = ++requestSeqRef.current;
+    const isFirstFetch = !firstFetchDoneRef.current;
+    if (isFirstFetch) setLoading(true);
+    else setPanning(true);
+
     try {
-      const params = { lat: myLocation.lat, lng: myLocation.lng, radius: 3 };
+      const { lat, lng, radius } = searchArea;
+      const params = { lat, lng, radius };
       if (medicineId) params.medicineId = medicineId;
+
+      let data;
       if (registeredOnly) {
         // 가입 약국 전용 조회 — pharmacies 테이블을 직접 조회하므로 카카오 매칭 실패와 무관하게 항상 정확함
         const res = await api.get('/pharmacies/nearby', { params });
-        setPharmacies(res.data.map((p) => ({ ...p, is_registered: true, linked_pharmacy_id: p.id })));
+        data = res.data.map((p) => ({ ...p, is_registered: true, linked_pharmacy_id: p.id }));
       } else {
         const res = await api.get('/pharmacies/public/nearby', { params });
-        setPharmacies(res.data);
+        data = res.data;
       }
+
+      if (seq !== requestSeqRef.current) return; // 뒤늦게 도착한 응답이면 최신 결과를 덮어쓰지 않음
+      setPharmacies(data);
+      setError('');
     } catch {
+      if (seq !== requestSeqRef.current) return;
       setError('약국 정보를 불러오지 못했습니다.');
     } finally {
-      setLoading(false);
+      if (seq === requestSeqRef.current) {
+        firstFetchDoneRef.current = true;
+        setLoading(false);
+        setPanning(false);
+      }
     }
   };
 
@@ -111,19 +152,35 @@ export default function PharmacyMapPage() {
       box-shadow: 0 2px 8px rgba(59,130,246,0.6);
     `;
     new kakao.maps.CustomOverlay({ position: center, content: dot, map: mapInstance.current, yAnchor: 0.5 });
+
+    // 지도 이동(드래그)·확대/축소가 끝나 멈추면(idle) 새 중심 좌표+줌 레벨 기준으로 재조회
+    kakao.maps.event.addListener(mapInstance.current, 'idle', () => {
+      const c = mapInstance.current.getCenter();
+      const level = mapInstance.current.getLevel();
+      setSearchArea({ lat: c.getLat(), lng: c.getLng(), radius: getRadiusForLevel(level) });
+    });
   };
 
+  // 지도는 최초 내 위치가 확정된 시점에 한 번만 생성 (이후 이동은 idle 리스너가 담당)
   useEffect(() => {
     if (!myLocation || !kakaoLoaded) return;
-    fetchPharmacies();
     initMap();
   }, [myLocation, kakaoLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // "가입 약국만 보기" 토글 시 재조회
+  // 조회 기준 좌표/반경이 바뀌거나 "가입 약국만 보기" 토글 시 재조회
   useEffect(() => {
-    if (!myLocation) return;
+    if (!searchArea) return;
     fetchPharmacies();
-  }, [registeredOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchArea, registeredOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // "내 위치로 돌아가기" — 지도를 GPS 위치로 재중심하고 기본 줌으로 복귀, 즉시 재조회
+  const handleRecenter = () => {
+    if (!mapInstance.current || !myLocation) return;
+    const { kakao } = window;
+    mapInstance.current.setCenter(new kakao.maps.LatLng(myLocation.lat, myLocation.lng));
+    mapInstance.current.setLevel(5);
+    setSearchArea({ ...myLocation, radius: 3 });
+  };
 
   useEffect(() => {
     if (!mapInstance.current || pharmacies.length === 0) return;
@@ -279,6 +336,33 @@ export default function PharmacyMapPage() {
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', color: '#64748b', fontSize: 14 }}>
           지도를 불러오는 중입니다...
         </div>
+      )}
+
+      {/* 재조회 중(지도 이동/줌) 인디케이터 — 최초 로드의 loading 텍스트와 구분 */}
+      {panning && (
+        <div style={{
+          position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(15,23,42,0.85)', color: 'white', fontSize: 12, fontWeight: 500,
+          padding: '6px 14px', borderRadius: 999, zIndex: 6,
+        }}>
+          이 지역 약국 검색 중...
+        </div>
+      )}
+
+      {/* 내 위치로 돌아가기 */}
+      {kakaoLoaded && !kakaoError && myLocation && (
+        <button
+          onClick={handleRecenter}
+          style={{
+            position: 'absolute', top: 12, right: 12, zIndex: 5,
+            background: 'white', border: 'none', borderRadius: 999,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            padding: '8px 14px', fontSize: 12, fontWeight: 600, color: '#0f172a',
+            cursor: 'pointer',
+          }}
+        >
+          📍 내 위치로
+        </button>
       )}
 
       {/* 지도 압정 색상 범례 */}
