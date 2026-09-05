@@ -2,7 +2,7 @@
 
 > 의약품을 검색하고 근처 약국의 재고를 실시간으로 확인하는 플랫폼
 
-![PharmFinder 메인 화면](docs/finder1.png)
+![PharmFinder 메인 화면](docs/new.png)
 
 ---
 
@@ -19,7 +19,7 @@ AI 증상 분석으로 적합한 약을 추천받고, 지도에서 현재 영업
 | 기능 | 설명 |
 |------|------|
 | 의약품 검색 | 약품명 검색 — DB 우선 조회 후 식약처(MFDS) API 폴백, 결과 캐싱 |
-| AI 증상 추천 | 증상을 입력하면 Groq LLaMA-3.3-70b 기반 RAG-lite로 의약품 추천 |
+| AI 증상 추천 | 증상을 입력하면 Groq gpt-oss-120b 기반 RAG-lite로 의약품 추천 |
 | 약국 지도 | 카카오 로컬 API 기반 실시간 주변 약국 지도, 영업 중/종료 배지 표시 |
 | 재고 확인 | 가입 약국의 의약품별 재고 현황 및 품절·부족 배지 |
 | 즐겨찾기 | 자주 방문하는 약국 저장·관리 |
@@ -62,7 +62,7 @@ AI 증상 분석으로 적합한 약을 추천받고, 지도에서 현재 영업
 | 데이터베이스 | Supabase (PostgreSQL) |
 | 인증 | JWT (`jsonwebtoken`) + bcryptjs, httpOnly 쿠키 발급/검증 (`cookie-parser`) |
 | 소셜 로그인 | Passport.js (Google, Kakao, Naver OAuth) |
-| AI | Groq SDK (LLaMA-3.3-70b) · Anthropic SDK · Google Generative AI |
+| AI | Groq SDK (gpt-oss-120b) · Anthropic SDK · Google Generative AI |
 | 외부 API | 식약처(MFDS) API · 카카오 로컬 API · HIRA 공공데이터 API · E-Gen(국립중앙의료원) API |
 | 이메일 | Nodemailer (Gmail SMTP) — 재고 알림, 약국 승인, 비밀번호 재설정 |
 | 스케줄러 | node-cron (매일 KST 03:00 공공약국·영업시간 자동 동기화) |
@@ -137,7 +137,7 @@ GET    /api/auth/naver                 네이버 OAuth
 
 GET    /api/medicines/search?q=        의약품 검색
 GET    /api/medicines/:id              의약품 상세
-POST   /api/medicines/ai-recommend     AI 증상 기반 추천
+POST   /api/medicines/recommend        AI 증상 기반 추천
 
 GET    /api/pharmacies/public/nearby   주변 공공약국 (카카오 로컬, E-Gen 영업시간 반영)
 GET    /api/pharmacies/:id             가입 약국 상세 + 재고
