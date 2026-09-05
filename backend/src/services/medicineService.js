@@ -134,7 +134,7 @@ ${contextBlock}
    잘못된 예: 이브프로펜(→이부프로펜), 지르텍(→세티리진), 타이레놀(→아세트아미노펜)`;
 
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
     messages: [
       { role: 'system', content: systemPrompt },
       {
@@ -162,13 +162,19 @@ ${contextBlock}
       },
     ],
     temperature: 0.2,
-    max_tokens: 1024,
+    max_tokens: 2048,
+    reasoning_effort: 'low',
   });
 
   const text = completion.choices[0]?.message?.content || '';
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('AI 응답 파싱 실패');
-  const result = JSON.parse(jsonMatch[0]);
+  let result;
+  try {
+    result = JSON.parse(jsonMatch[0]);
+  } catch {
+    throw new Error('AI 응답 파싱 실패');
+  }
 
   // 추천 결과에 DB id 부착 (실패해도 에러 전파 안 함)
   if (result.medicines?.length) {
