@@ -43,10 +43,10 @@ export default function MedicineDetailPage() {
           onClick={() => navigate(`/map?medicine=${id}`)}
           style={{
             padding: '9px 18px',
-            background: 'linear-gradient(135deg, #10b981, #059669)',
+            background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
             color: 'white', border: 'none', borderRadius: 10,
             fontWeight: 600, fontSize: 13, cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+            boxShadow: '0 2px 8px rgba(83,58,253,0.3)',
           }}
         >
           이 약 재고 있는 주변 약국 찾기 →
@@ -62,13 +62,13 @@ export default function MedicineDetailPage() {
         padding: '24px',
         marginBottom: 24,
       }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8 }}>
           {medicine.name}
         </h1>
         {medicine.category && (
           <span style={{
-            background: '#dcfce7',
-            color: '#16a34a',
+            background: 'rgba(83,58,253,0.14)',
+            color: 'var(--color-primary-deep)',
             padding: '2px 8px',
             borderRadius: 999,
             fontSize: 12,

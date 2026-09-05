@@ -67,7 +67,7 @@ export default function PublicPharmacyDetailPage() {
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-      <div className="animate-spin" style={{ width: 32, height: 32, border: '2px solid #a7f3d0', borderTopColor: '#059669', borderRadius: '50%' }} />
+      <div className="animate-spin" style={{ width: 32, height: 32, border: '2px solid var(--color-primary-subdued)', borderTopColor: 'var(--color-primary-deep)', borderRadius: '50%' }} />
     </div>
   );
 
@@ -90,9 +90,9 @@ export default function PublicPharmacyDetailPage() {
       <div style={{ background: 'white', borderRadius: 20, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', padding: '24px', marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>{pharmacy.name}</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8 }}>{pharmacy.name}</h1>
             {pharmacy.is_registered ? (
-              <span style={{ fontSize: 12, background: '#dcfce7', color: '#16a34a', padding: '4px 10px', borderRadius: 999, fontWeight: 500, whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 12, background: 'rgba(83,58,253,0.14)', color: 'var(--color-primary-deep)', padding: '4px 10px', borderRadius: 999, fontWeight: 500, whiteSpace: 'nowrap' }}>
                 PharmFinder 가입
               </span>
             ) : (
@@ -142,8 +142,8 @@ export default function PublicPharmacyDetailPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
                 <span style={{
                   fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
-                  background: open ? '#dcfce7' : '#f1f5f9',
-                  color: open ? '#16a34a' : '#64748b',
+                  background: open ? 'rgba(83,58,253,0.14)' : '#f1f5f9',
+                  color: open ? 'var(--color-primary-deep)' : '#64748b',
                 }}>
                   {open ? '영업 중' : '영업 종료'}
                 </span>
@@ -161,7 +161,7 @@ export default function PublicPharmacyDetailPage() {
       {!pharmacy.is_registered && (
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 20, padding: '32px 24px', textAlign: 'center' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>📦</div>
-          <p style={{ fontWeight: 600, color: '#0f172a', marginBottom: 8 }}>재고 정보가 제공되지 않는 약국입니다</p>
+          <p style={{ fontWeight: 600, color: 'var(--color-ink)', marginBottom: 8 }}>재고 정보가 제공되지 않는 약국입니다</p>
           <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.6 }}>
             이 약국은 PharmFinder에 등록되지 않아 실시간 재고 정보를 확인할 수 없습니다.
             <br />방문 전 전화로 재고를 확인해 보세요.
@@ -186,7 +186,7 @@ export default function PublicPharmacyDetailPage() {
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h2 style={{ fontWeight: 700, color: '#0f172a' }}>보유 재고</h2>
+            <h2 style={{ fontWeight: 700, color: 'var(--color-ink)' }}>보유 재고</h2>
             <span style={{ fontSize: 14, color: '#94a3b8' }}>{inventory.length}종</span>
           </div>
 
@@ -200,13 +200,13 @@ export default function PublicPharmacyDetailPage() {
               {inventory.map((item) => (
                 <div key={item.id} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 16, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <p style={{ fontWeight: 500, color: '#0f172a', fontSize: 14 }}>{item.medicines?.name}</p>
+                    <p style={{ fontWeight: 500, color: 'var(--color-ink)', fontSize: 14 }}>{item.medicines?.name}</p>
                     {item.medicines?.category && (
                       <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{item.medicines.category}</p>
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: item.quantity === 0 ? '#ef4444' : item.quantity <= item.min_quantity ? '#f59e0b' : '#10b981' }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: item.quantity === 0 ? '#ef4444' : item.quantity <= item.min_quantity ? '#f59e0b' : 'var(--color-primary)' }}>
                       {item.quantity}
                     </span>
                     <span style={{ fontSize: 12, color: '#94a3b8' }}>개</span>

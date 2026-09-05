@@ -4,7 +4,7 @@ import api from '../services/api';
 
 const s = {
   page: { maxWidth: 800, margin: '0 auto', padding: '40px 24px', minHeight: '100vh' },
-  heading: { fontSize: 24, fontWeight: 700, color: '#0f172a', marginBottom: 32 },
+  heading: { fontSize: 24, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 32 },
   grid: { display: 'grid', gap: 16 },
   card: {
     background: 'white', borderRadius: 16, border: '1px solid #e2e8f0',
@@ -12,7 +12,7 @@ const s = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
   },
   cardLeft: { flex: 1, minWidth: 0 },
-  name: { fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 4, textDecoration: 'none' },
+  name: { fontSize: 16, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 4, textDecoration: 'none' },
   address: { fontSize: 13, color: '#64748b', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   phone: { fontSize: 13, color: '#94a3b8' },
   removeBtn: {
@@ -23,13 +23,13 @@ const s = {
   center: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', color: '#94a3b8' },
   empty: { textAlign: 'center', padding: '80px 0' },
   emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: 700, color: '#0f172a', marginBottom: 8 },
+  emptyTitle: { fontSize: 18, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8 },
   emptyDesc: { fontSize: 14, color: '#94a3b8', marginBottom: 24 },
   ctaBtn: {
     display: 'inline-block', padding: '12px 28px', borderRadius: 12,
-    background: 'linear-gradient(135deg, #10b981, #059669)',
+    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
     color: 'white', fontWeight: 600, fontSize: 14, textDecoration: 'none',
-    boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+    boxShadow: '0 2px 8px rgba(83,58,253,0.3)',
   },
   count: { fontSize: 14, color: '#64748b', marginBottom: 20 },
 };

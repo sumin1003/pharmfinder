@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
+/* ── Stripi-inspired 디자인 토큰 (docs/DESIGN_stripi-inspired-redesign.md 참고) ── */
+@theme {
+  --color-primary: #533afd;
+  --color-primary-deep: #4434d4;
+  --color-primary-press: #2e2b8c;
+  --color-primary-soft: #665efd;
+  --color-primary-subdued: #b9b9f9;
+  --color-brand-dark: #1c1e54;
+  --color-ink: #0d253d;
+  --color-ink-secondary: #273951;
+  --color-ink-mute: #64748d;
+  --color-on-primary: #ffffff;
+  --color-canvas: #ffffff;
+  --color-canvas-soft: #f6f9fc;
+  --color-canvas-cream: #f5e9d4;
+  --color-hairline: #e3e8ee;
+  --color-hairline-input: #a8c3de;
+  --color-ruby: #ea2261;
+  --color-magenta: #f96bee;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -12,11 +42,118 @@ html, body, #root {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', Roboto, sans-serif;
-  background-color: #f8fafc;
-  color: #0f172a;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-feature-settings: "ss01";
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   line-height: 1.6;
+}
+
+/* ── Stripi-inspired 컴포넌트 클래스 ── */
+.tabular-money {
+  font-feature-settings: "tnum";
+  letter-spacing: -0.42px;
+}
+
+.btn-primary-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.btn-primary-pill:hover,
+.btn-primary-pill:active {
+  background-color: var(--color-primary-press);
+}
+
+.btn-secondary-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-canvas);
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-primary);
+  cursor: pointer;
+}
+
+.btn-on-dark-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-brand-dark);
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+}
+
+.card-feature-light {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-hairline);
+}
+
+.card-pricing-featured {
+  background-color: var(--color-brand-dark);
+  color: var(--color-on-primary);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+}
+
+.card-cream-band {
+  background-color: var(--color-canvas-cream);
+  color: var(--color-ink);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+}
+
+.pill-tag-soft {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--color-primary-subdued);
+  color: var(--color-primary-deep);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.1px;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.input-field {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 15px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-hairline-input);
+  outline: none;
+}
+.input-field:focus {
+  border-color: var(--color-primary);
 }
 
 .line-clamp-2 {

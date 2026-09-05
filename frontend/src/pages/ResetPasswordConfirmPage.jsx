@@ -16,7 +16,7 @@ export default function ResetPasswordConfirmPage() {
   if (!token) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', color: '#94a3b8', fontSize: 15 }}>
-        유효하지 않은 접근입니다. <Link to="/forgot-password" style={{ color: '#10b981', marginLeft: 6 }}>비밀번호 찾기로 이동</Link>
+        유효하지 않은 접근입니다. <Link to="/forgot-password" style={{ color: 'var(--color-primary)', marginLeft: 6 }}>비밀번호 찾기로 이동</Link>
       </div>
     );
   }
@@ -45,24 +45,24 @@ export default function ResetPasswordConfirmPage() {
   };
 
   return (
-    <div style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%)' }}>
+    <div style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'linear-gradient(135deg, rgba(83,58,253,0.06) 0%, #f8fafc 100%)' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ background: 'white', borderRadius: 28, padding: '40px 40px', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', border: '1px solid #f1f5f9' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>새 비밀번호 설정</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-ink)', marginBottom: 6 }}>새 비밀번호 설정</h1>
             <p style={{ fontSize: 14, color: '#94a3b8' }}>새로 사용할 비밀번호를 입력해주세요</p>
           </div>
 
           {done ? (
             <div>
-              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '18px 16px', fontSize: 14, color: '#166534', textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ background: 'rgba(83,58,253,0.06)', border: '1px solid #bbf7d0', borderRadius: 12, padding: '18px 16px', fontSize: 14, color: '#166534', textAlign: 'center', marginBottom: 20 }}>
                 비밀번호가 재설정됐습니다.
               </div>
               <button
                 onClick={() => navigate('/login')}
                 style={{
                   width: '100%', padding: '14px', fontSize: 15, fontWeight: 700, color: 'white',
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
                   border: 'none', borderRadius: 12, cursor: 'pointer',
                 }}
               >
@@ -85,10 +85,10 @@ export default function ResetPasswordConfirmPage() {
                     style={{
                       width: '100%', padding: '13px 16px', fontSize: 14,
                       border: '1.5px solid #e2e8f0', borderRadius: 12, outline: 'none',
-                      background: '#f8fafc', color: '#0f172a',
+                      background: '#f8fafc', color: 'var(--color-ink)',
                       transition: 'border-color 0.15s', boxSizing: 'border-box',
                     }}
-                    onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                    onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
                     onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                   />
                 </div>
@@ -104,9 +104,9 @@ export default function ResetPasswordConfirmPage() {
                 type="submit" disabled={loading}
                 style={{
                   width: '100%', padding: '14px', fontSize: 15, fontWeight: 700, color: 'white',
-                  background: loading ? '#6ee7b7' : 'linear-gradient(135deg, #10b981, #059669)',
+                  background: loading ? 'var(--color-primary-soft)' : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
                   border: 'none', borderRadius: 12, cursor: loading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
+                  boxShadow: '0 4px 16px rgba(83,58,253,0.3)',
                 }}
               >
                 {loading ? '처리 중...' : '비밀번호 재설정'}

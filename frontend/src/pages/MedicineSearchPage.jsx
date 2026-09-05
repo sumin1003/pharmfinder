@@ -54,7 +54,7 @@ export default function MedicineSearchPage() {
             padding: '13px 16px',
             fontSize: 14,
             background: '#f8fafc',
-            color: '#0f172a',
+            color: 'var(--color-ink)',
             outline: 'none',
           }}
         />
@@ -62,14 +62,14 @@ export default function MedicineSearchPage() {
           type="submit"
           style={{
             padding: '13px 20px',
-            background: 'linear-gradient(135deg, #10b981, #059669)',
+            background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
             color: 'white',
             border: 'none',
             borderRadius: 12,
             cursor: 'pointer',
             fontSize: 14,
             fontWeight: 500,
-            boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
+            boxShadow: '0 4px 16px rgba(83,58,253,0.3)',
           }}
         >
           검색
@@ -84,8 +84,8 @@ export default function MedicineSearchPage() {
             style={{
               width: 32,
               height: 32,
-              border: '2px solid #a7f3d0',
-              borderTopColor: '#059669',
+              border: '2px solid var(--color-primary-subdued)',
+              borderTopColor: 'var(--color-primary-deep)',
               borderRadius: '50%',
             }}
           />
@@ -121,14 +121,14 @@ export default function MedicineSearchPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ flex: 1 }}>
-                <h3 style={{ fontWeight: 600, color: '#0f172a', marginBottom: 6, fontSize: 15 }}>
+                <h3 style={{ fontWeight: 600, color: 'var(--color-ink)', marginBottom: 6, fontSize: 15 }}>
                   {med.name}
                 </h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {med.category && (
                     <span style={{
-                      background: '#dcfce7',
-                      color: '#16a34a',
+                      background: 'rgba(83,58,253,0.14)',
+                      color: 'var(--color-primary-deep)',
                       padding: '2px 8px',
                       borderRadius: 999,
                       fontSize: 12,

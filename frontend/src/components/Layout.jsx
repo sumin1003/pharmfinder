@@ -25,7 +25,7 @@ export default function Layout({ children }) {
   ].filter((l) => l.show);
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
+    <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-canvas-soft)' }}>
       {/* 포트폴리오 면책 배너 */}
       <div style={{
         width: '100%', backgroundColor: '#fef3c7',
@@ -42,20 +42,20 @@ export default function Layout({ children }) {
         position: 'sticky', top: 0, zIndex: 50,
         backgroundColor: 'rgba(255,255,255,0.9)',
         backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #e2e8f0',
+        borderBottom: '1px solid var(--color-hairline)',
         width: '100%',
       }}>
         <div className="max-w-screen-xl mx-auto" style={{ padding: '0 16px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
             <div style={{
               width: 34, height: 34,
-              background: 'linear-gradient(135deg, #10b981, #059669)',
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
               borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+              boxShadow: '0 2px 8px rgba(83,58,253,0.3)',
             }}>
               <span style={{ color: 'white', fontSize: 18, lineHeight: 1 }}>+</span>
             </div>
-            <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>PharmFinder</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-ink)' }}>PharmFinder</span>
           </Link>
 
           {/* 데스크톱 네비게이션 */}
@@ -63,8 +63,8 @@ export default function Layout({ children }) {
             {navLinks.map((link) => (
               <Link key={link.to} to={link.to} style={{
                 padding: '8px 16px', borderRadius: 10, fontSize: 14, fontWeight: 500, textDecoration: 'none',
-                color: isActive(link.to) ? '#059669' : '#64748b',
-                backgroundColor: isActive(link.to) ? '#ecfdf5' : 'transparent',
+                color: isActive(link.to) ? 'var(--color-primary-deep)' : 'var(--color-ink-mute)',
+                backgroundColor: isActive(link.to) ? 'var(--color-primary-subdued)' : 'transparent',
               }}>{link.label}</Link>
             ))}
 
@@ -73,30 +73,28 @@ export default function Layout({ children }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #a7f3d0, #6ee7b7)',
+                    background: 'linear-gradient(135deg, var(--color-primary-subdued), var(--color-primary-soft))',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 13, fontWeight: 700, color: '#065f46',
+                    fontSize: 13, fontWeight: 700, color: 'var(--color-primary-press)',
                   }}>{user.name[0]}</div>
-                  <Link to="/profile" style={{ fontSize: 14, color: '#334155', fontWeight: 500, textDecoration: 'none' }}>
+                  <Link to="/profile" style={{ fontSize: 14, color: 'var(--color-ink-secondary)', fontWeight: 500, textDecoration: 'none' }}>
                     {user.name}
                   </Link>
                 </div>
                 <button onClick={() => { logout().then(() => navigate('/')); }} style={{
-                  fontSize: 13, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 13, color: 'var(--color-ink-mute)', background: 'none', border: 'none', cursor: 'pointer',
                   padding: '6px 10px', borderRadius: 8,
                 }}>로그아웃</button>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
                 <Link to="/login" style={{
-                  fontSize: 14, color: '#64748b', textDecoration: 'none',
+                  fontSize: 14, color: 'var(--color-ink-mute)', textDecoration: 'none',
                   padding: '8px 14px', borderRadius: 10,
                 }}>로그인</Link>
-                <Link to="/register/pharmacy" style={{
-                  fontSize: 14, fontWeight: 600, color: 'white', textDecoration: 'none',
-                  padding: '9px 18px', borderRadius: 10,
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
-                  boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+                <Link to="/register/pharmacy" className="btn-primary-pill" style={{
+                  fontSize: 14, fontWeight: 500, textDecoration: 'none',
+                  padding: '9px 18px',
                 }}>약국 등록</Link>
               </div>
             )}
@@ -106,7 +104,7 @@ export default function Layout({ children }) {
           <button
             className="pf-mobile-btn"
             onClick={() => setMenuOpen(true)}
-            style={{ alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 8, color: '#334155', borderRadius: 8 }}
+            style={{ alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 8, color: 'var(--color-ink-secondary)', borderRadius: 8 }}
             aria-label="메뉴 열기"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -132,21 +130,21 @@ export default function Layout({ children }) {
           {/* 드로어 패널 */}
           <div style={{
             position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 100,
-            width: 260, background: 'white',
+            width: 260, background: 'var(--color-canvas)',
             boxShadow: '-4px 0 24px rgba(0,0,0,0.15)',
             display: 'flex', flexDirection: 'column',
           }}>
             {/* 드로어 헤더 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 20px', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 20px', borderBottom: '1px solid var(--color-hairline)' }}>
               <Link to="/" onClick={() => setMenuOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-                <div style={{ width: 28, height: 28, background: 'linear-gradient(135deg, #10b981, #059669)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 28, height: 28, background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ color: 'white', fontSize: 15 }}>+</span>
                 </div>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>PharmFinder</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-ink)' }}>PharmFinder</span>
               </Link>
               <button
                 onClick={() => setMenuOpen(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 20, padding: 4 }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-mute)', fontSize: 20, padding: 4 }}
                 aria-label="메뉴 닫기"
               >✕</button>
             </div>
@@ -160,9 +158,9 @@ export default function Layout({ children }) {
                   onClick={() => setMenuOpen(false)}
                   style={{
                     display: 'block', padding: '14px 24px', fontSize: 15, fontWeight: 500, textDecoration: 'none',
-                    color: isActive(link.to) ? '#059669' : '#334155',
-                    background: isActive(link.to) ? '#f0fdf4' : 'transparent',
-                    borderLeft: `3px solid ${isActive(link.to) ? '#10b981' : 'transparent'}`,
+                    color: isActive(link.to) ? 'var(--color-primary-deep)' : 'var(--color-ink-secondary)',
+                    background: isActive(link.to) ? 'var(--color-primary-subdued)' : 'transparent',
+                    borderLeft: `3px solid ${isActive(link.to) ? 'var(--color-primary)' : 'transparent'}`,
                   }}
                 >
                   {link.label}
@@ -171,28 +169,28 @@ export default function Layout({ children }) {
             </div>
 
             {/* 유저 섹션 */}
-            <div style={{ padding: '16px 20px', borderTop: '1px solid #f1f5f9' }}>
+            <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-hairline)' }}>
               {user ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <Link to="/profile" onClick={() => setMenuOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', padding: '8px 0' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #a7f3d0, #6ee7b7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#065f46', flexShrink: 0 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--color-primary-subdued), var(--color-primary-soft))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: 'var(--color-primary-press)', flexShrink: 0 }}>
                       {user.name[0]}
                     </div>
-                    <span style={{ fontSize: 14, color: '#334155', fontWeight: 500 }}>{user.name}</span>
+                    <span style={{ fontSize: 14, color: 'var(--color-ink-secondary)', fontWeight: 500 }}>{user.name}</span>
                   </Link>
                   <button
                     onClick={() => { logout().then(() => navigate('/')); setMenuOpen(false); }}
-                    style={{ padding: '11px', borderRadius: 10, background: '#f1f5f9', color: '#64748b', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                    style={{ padding: '11px', borderRadius: 10, background: 'var(--color-canvas-soft)', color: 'var(--color-ink-mute)', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
                   >
                     로그아웃
                   </button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <Link to="/login" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '12px', borderRadius: 10, background: '#f1f5f9', color: '#334155', textDecoration: 'none', textAlign: 'center', fontSize: 14, fontWeight: 500 }}>
+                  <Link to="/login" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '12px', borderRadius: 10, background: 'var(--color-canvas-soft)', color: 'var(--color-ink-secondary)', textDecoration: 'none', textAlign: 'center', fontSize: 14, fontWeight: 500 }}>
                     로그인
                   </Link>
-                  <Link to="/register/pharmacy" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '12px', borderRadius: 10, background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', textDecoration: 'none', textAlign: 'center', fontSize: 14, fontWeight: 600 }}>
+                  <Link to="/register/pharmacy" onClick={() => setMenuOpen(false)} className="btn-primary-pill" style={{ display: 'block', textDecoration: 'none', textAlign: 'center', fontSize: 14 }}>
                     약국 등록
                   </Link>
                 </div>
@@ -208,18 +206,18 @@ export default function Layout({ children }) {
       </main>
 
       {/* 푸터 */}
-      <footer style={{ backgroundColor: 'white', borderTop: '1px solid #e2e8f0', padding: '24px 0' }}>
+      <footer style={{ backgroundColor: 'var(--color-canvas)', borderTop: '1px solid var(--color-hairline)', padding: '24px 0' }}>
         <div className="max-w-screen-xl mx-auto" style={{ padding: '0 16px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
-              width: 24, height: 24, background: 'linear-gradient(135deg, #10b981, #059669)',
+              width: 24, height: 24, background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
               borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <span style={{ color: 'white', fontSize: 13 }}>+</span>
             </div>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>PharmFinder</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-ink-secondary)' }}>PharmFinder</span>
           </div>
-          <p style={{ fontSize: 13, color: '#94a3b8' }}>© 2026 PharmFinder. 내 주변 약국을 쉽고 빠르게.</p>
+          <p style={{ fontSize: 13, color: 'var(--color-ink-mute)' }}>© 2026 PharmFinder. 내 주변 약국을 쉽고 빠르게.</p>
         </div>
       </footer>
     </div>

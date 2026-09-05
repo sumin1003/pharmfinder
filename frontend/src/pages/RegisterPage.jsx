@@ -36,7 +36,7 @@ export default function RegisterPage() {
     <div style={{
       minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '40px 16px',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%)',
+      background: 'linear-gradient(135deg, #f8fafc 0%, rgba(83,58,253,0.08) 100%)',
     }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div className="pf-form-card" style={{
@@ -47,16 +47,16 @@ export default function RegisterPage() {
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <div style={{
               width: 52, height: 52,
-              background: 'linear-gradient(135deg, #10b981, #059669)',
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
               borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 16px', boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
+              margin: '0 auto 16px', boxShadow: '0 4px 16px rgba(83,58,253,0.3)',
             }}>
               <span style={{ color: 'white', fontSize: 24, fontWeight: 700 }}>+</span>
             </div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>일반 회원가입</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8 }}>일반 회원가입</h1>
             <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.7 }}>
               즐겨찾기 등 일부 기능에 사용돼요<br />
-              <span style={{ color: '#10b981' }}>약 검색·AI 추천은 가입 없이 이용 가능해요</span>
+              <span style={{ color: 'var(--color-primary)' }}>약 검색·AI 추천은 가입 없이 이용 가능해요</span>
             </p>
           </div>
 
@@ -76,10 +76,10 @@ export default function RegisterPage() {
                   style={{
                     width: '100%', padding: '12px 16px', fontSize: 14,
                     border: '1.5px solid #e2e8f0', borderRadius: 12,
-                    background: '#f8fafc', color: '#0f172a', outline: 'none',
+                    background: '#f8fafc', color: 'var(--color-ink)', outline: 'none',
                     transition: 'border-color 0.15s',
                   }}
-                  onFocus={(e) => { e.target.style.borderColor = '#10b981'; e.target.style.background = 'white'; }}
+                  onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)'; e.target.style.background = 'white'; }}
                   onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
                 />
               </div>
@@ -100,10 +100,10 @@ export default function RegisterPage() {
               disabled={loading}
               style={{
                 width: '100%', padding: '14px',
-                background: loading ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
+                background: loading ? '#9ca3af' : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
                 color: 'white', border: 'none', borderRadius: 12,
                 fontSize: 15, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: loading ? 'none' : '0 4px 16px rgba(16,185,129,0.35)',
+                boxShadow: loading ? 'none' : '0 4px 16px rgba(83,58,253,0.35)',
                 transition: 'opacity 0.15s',
               }}
             >
@@ -114,7 +114,7 @@ export default function RegisterPage() {
 
         <p style={{ textAlign: 'center', fontSize: 13, color: '#64748b', marginTop: 20 }}>
           이미 계정이 있으신가요?{' '}
-          <Link to="/login" style={{ color: '#10b981', fontWeight: 600, textDecoration: 'none' }}>
+          <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
             로그인
           </Link>
         </p>

@@ -3,11 +3,11 @@ import api from '../../services/api';
 
 const s = {
   page: { maxWidth: 1000, margin: '0 auto', padding: '40px 24px', background: '#f8fafc', minHeight: '100vh' },
-  heading: { fontSize: 24, fontWeight: 700, color: '#0f172a', marginBottom: 32 },
+  heading: { fontSize: 24, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 32 },
   tabBar: { display: 'flex', gap: 4, marginBottom: 32, borderBottom: '1px solid #e2e8f0', flexWrap: 'wrap' },
   tabActive: {
     padding: '8px 16px', fontSize: 14, fontWeight: 500,
-    borderBottom: '2px solid #059669', color: '#059669',
+    borderBottom: '2px solid var(--color-primary-deep)', color: 'var(--color-primary-deep)',
     background: 'none', border: 'none', cursor: 'pointer',
   },
   tabInactive: {
@@ -23,13 +23,13 @@ const s = {
     boxShadow: '0 2px 10px rgba(0,0,0,0.05)', padding: '20px 24px',
   },
   cardRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-  pharmacyName: { fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 4 },
+  pharmacyName: { fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 4 },
   pharmacyAddress: { fontSize: 13, color: '#64748b', marginBottom: 2 },
   pharmacyPhone: { fontSize: 13, color: '#64748b', marginBottom: 2 },
   pharmacyManager: { fontSize: 12, color: '#94a3b8', marginTop: 4 },
   btnGroup: { display: 'flex', gap: 8 },
   btnApprove: {
-    padding: '8px 16px', background: '#10b981', color: 'white',
+    padding: '8px 16px', background: 'var(--color-primary)', color: 'white',
     fontSize: 13, borderRadius: 12, border: 'none', cursor: 'pointer',
   },
   btnReject: {
@@ -45,9 +45,9 @@ const s = {
     fontSize: 13, borderRadius: 10, border: 'none', cursor: 'pointer',
   },
   btnPrimary: {
-    padding: '8px 20px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white',
+    padding: '8px 20px', background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))', color: 'white',
     fontSize: 13, borderRadius: 12, border: 'none', cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+    boxShadow: '0 2px 8px rgba(83,58,253,0.3)',
   },
   btnSecondary: {
     padding: '8px 20px', background: '#f1f5f9', color: '#64748b',
@@ -61,18 +61,18 @@ const s = {
   thead: { background: '#f8fafc' },
   th: { padding: '12px 16px', textAlign: 'left', color: '#64748b', fontWeight: 500 },
   td: { padding: '12px 16px', borderTop: '1px solid #f1f5f9', color: '#64748b' },
-  tdName: { padding: '12px 16px', borderTop: '1px solid #f1f5f9', color: '#0f172a' },
+  tdName: { padding: '12px 16px', borderTop: '1px solid #f1f5f9', color: 'var(--color-ink)' },
   tdDate: { padding: '12px 16px', borderTop: '1px solid #f1f5f9', color: '#94a3b8' },
   badgeAdmin: { padding: '2px 8px', borderRadius: 999, fontSize: 12, fontWeight: 500, background: '#ede9fe', color: '#7c3aed' },
   badgePharmacy: { padding: '2px 8px', borderRadius: 999, fontSize: 12, fontWeight: 500, background: '#dbeafe', color: '#1d4ed8' },
   badgeUser: { padding: '2px 8px', borderRadius: 999, fontSize: 12, fontWeight: 500, background: '#f1f5f9', color: '#64748b' },
   input: {
     width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 10,
-    fontSize: 14, color: '#0f172a', background: '#f8fafc', boxSizing: 'border-box',
+    fontSize: 14, color: 'var(--color-ink)', background: '#f8fafc', boxSizing: 'border-box',
   },
   textarea: {
     width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 10,
-    fontSize: 13, color: '#0f172a', background: '#f8fafc', resize: 'vertical', boxSizing: 'border-box',
+    fontSize: 13, color: 'var(--color-ink)', background: '#f8fafc', resize: 'vertical', boxSizing: 'border-box',
   },
   formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 },
   formLabel: { fontSize: 12, fontWeight: 500, color: '#64748b', marginBottom: 4, display: 'block' },
@@ -529,7 +529,7 @@ function MedicinesTab() {
 
       {showAddForm && (
         <div style={s.addFormCard}>
-          <h3 style={{ fontSize: 15, fontWeight: 600, color: '#0f172a', marginBottom: 12 }}>새 약품 등록</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 12 }}>새 약품 등록</h3>
           <MedicineFormFields form={addForm} onChange={setAddForm} />
           {formError && <p style={s.errorText}>{formError}</p>}
           <div style={s.formActions}>
@@ -736,7 +736,7 @@ function PublicLinkTab() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <p style={s.pharmacyName}>{pub.name}</p>
                     {isLinked ? (
-                      <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: 999, fontWeight: 500 }}>연결됨</span>
+                      <span style={{ fontSize: 11, background: 'rgba(83,58,253,0.14)', color: 'var(--color-primary-deep)', padding: '2px 8px', borderRadius: 999, fontWeight: 500 }}>연결됨</span>
                     ) : (
                       <span style={{ fontSize: 11, background: '#f1f5f9', color: '#94a3b8', padding: '2px 8px', borderRadius: 999 }}>미연결</span>
                     )}
@@ -744,7 +744,7 @@ function PublicLinkTab() {
                   {pub.address && <p style={s.pharmacyAddress}>{pub.address}</p>}
                   {pub.phone && <p style={s.pharmacyPhone}>{pub.phone}</p>}
                   {isLinked && (
-                    <p style={{ fontSize: 12, color: '#059669', marginTop: 4 }}>
+                    <p style={{ fontSize: 12, color: 'var(--color-primary-deep)', marginTop: 4 }}>
                       연결된 약국: {pub._linkedName || pub.linked_pharmacy_id}
                     </p>
                   )}
@@ -784,7 +784,7 @@ function PublicLinkTab() {
               </div>
 
               {msg && (
-                <p style={{ fontSize: 12, marginTop: 8, color: msg.type === 'ok' ? '#16a34a' : '#dc2626' }}>
+                <p style={{ fontSize: 12, marginTop: 8, color: msg.type === 'ok' ? 'var(--color-primary-deep)' : '#dc2626' }}>
                   {msg.text}
                 </p>
               )}
@@ -845,13 +845,13 @@ function PublicSyncTab() {
       {error && <p style={s.errorText}>{error}</p>}
 
       {result && (
-        <div style={{ background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14, color: '#16a34a' }}>
+        <div style={{ background: 'rgba(83,58,253,0.14)', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14, color: 'var(--color-primary-deep)' }}>
           <p style={{ marginBottom: result.totalCount ? 8 : 0 }}>✅ {result.message}</p>
           {result.totalCount > 0 && (
             <div style={{ background: '#bbf7d0', borderRadius: 999, height: 8, overflow: 'hidden' }}>
               <div style={{
                 width: `${Math.min(100, Math.round((((result.isComplete ? result.totalCount : (result.nextPage - 1) * 100) / result.totalCount) * 100)))}%`,
-                background: '#16a34a', height: '100%',
+                background: 'var(--color-primary-deep)', height: '100%',
               }} />
             </div>
           )}
@@ -873,13 +873,13 @@ function PublicSyncTab() {
       {hoursError && <p style={s.errorText}>{hoursError}</p>}
 
       {hoursResult && (
-        <div style={{ background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14, color: '#16a34a' }}>
+        <div style={{ background: 'rgba(83,58,253,0.14)', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14, color: 'var(--color-primary-deep)' }}>
           <p style={{ marginBottom: hoursResult.totalCount ? 8 : 0 }}>✅ {hoursResult.message}</p>
           {hoursResult.totalCount > 0 && (
             <div style={{ background: '#bbf7d0', borderRadius: 999, height: 8, overflow: 'hidden' }}>
               <div style={{
                 width: `${Math.min(100, Math.round((((hoursResult.isComplete ? hoursResult.totalCount : (hoursResult.nextPage - 1) * 100) / hoursResult.totalCount) * 100)))}%`,
-                background: '#16a34a', height: '100%',
+                background: 'var(--color-primary-deep)', height: '100%',
               }} />
             </div>
           )}

@@ -46,7 +46,7 @@ export default function ResetPasswordPage() {
   const inputStyle = {
     width: '100%', padding: '12px 16px', fontSize: 14,
     border: '1.5px solid #e2e8f0', borderRadius: 12,
-    background: '#f8fafc', color: '#0f172a', outline: 'none',
+    background: '#f8fafc', color: 'var(--color-ink)', outline: 'none',
     transition: 'border-color 0.15s', boxSizing: 'border-box',
   };
 
@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
   return (
     <div style={{
       minHeight: '90vh',
-      background: 'linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%)',
+      background: 'linear-gradient(135deg, rgba(83,58,253,0.06) 0%, #f8fafc 100%)',
       padding: '48px 16px',
     }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
@@ -76,7 +76,7 @@ export default function ResetPasswordPage() {
 
         {/* 제목 */}
         <div style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>비밀번호 재설정</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 6 }}>비밀번호 재설정</h1>
           <p style={{ fontSize: 14, color: '#64748b' }}>현재 비밀번호를 확인한 후 새 비밀번호로 변경합니다.</p>
         </div>
 
@@ -94,7 +94,7 @@ export default function ResetPasswordPage() {
               <span style={{ color: 'white', fontSize: 18 }}>🔒</span>
             </div>
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', margin: 0 }}>비밀번호 변경</h2>
+              <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>비밀번호 변경</h2>
               <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, marginTop: 2 }}>
                 {user?.provider ? `${user.provider} 계정은 해당 서비스에서 비밀번호를 관리합니다.` : '8자 이상의 새 비밀번호를 설정하세요.'}
               </p>
@@ -166,9 +166,9 @@ export default function ResetPasswordPage() {
 
               {success && (
                 <div style={{
-                  background: '#f0fdf4', border: '1px solid #bbf7d0',
+                  background: 'rgba(83,58,253,0.06)', border: '1px solid #bbf7d0',
                   borderRadius: 10, padding: '12px 16px',
-                  color: '#16a34a', fontSize: 13, marginBottom: 16,
+                  color: 'var(--color-primary-deep)', fontSize: 13, marginBottom: 16,
                 }}>
                   {success}
                 </div>

@@ -83,7 +83,7 @@ export default function ProfilePage() {
   const inputStyle = {
     width: '100%', padding: '12px 16px', fontSize: 14,
     border: '1.5px solid #e2e8f0', borderRadius: 12,
-    background: '#f8fafc', color: '#0f172a', outline: 'none',
+    background: '#f8fafc', color: 'var(--color-ink)', outline: 'none',
     transition: 'border-color 0.15s', boxSizing: 'border-box',
   };
 
@@ -96,14 +96,14 @@ export default function ProfilePage() {
   return (
     <div style={{
       minHeight: '90vh',
-      background: 'linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%)',
+      background: 'linear-gradient(135deg, rgba(83,58,253,0.06) 0%, #f8fafc 100%)',
       padding: '48px 16px',
     }}>
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
 
         {/* 페이지 제목 */}
         <div style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>내 계정</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 6 }}>내 계정</h1>
           <p style={{ fontSize: 14, color: '#64748b' }}>계정 정보를 확인하고 수정할 수 있습니다.</p>
         </div>
 
@@ -116,14 +116,14 @@ export default function ProfilePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
             <div style={{
               width: 40, height: 40,
-              background: 'linear-gradient(135deg, #10b981, #059669)',
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
               borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 10px rgba(16,185,129,0.3)',
+              boxShadow: '0 2px 10px rgba(83,58,253,0.3)',
             }}>
               <span style={{ color: 'white', fontSize: 18, fontWeight: 700 }}>✎</span>
             </div>
             <div>
-              <h2 style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', margin: 0 }}>기본 정보 수정</h2>
+              <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>기본 정보 수정</h2>
               <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, marginTop: 2 }}>이름과 이메일을 변경할 수 있습니다.</p>
             </div>
           </div>
@@ -138,7 +138,7 @@ export default function ProfilePage() {
                 onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                 placeholder="홍길동"
                 style={inputStyle}
-                onFocus={(e) => { e.target.style.borderColor = '#10b981'; e.target.style.background = 'white'; }}
+                onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)'; e.target.style.background = 'white'; }}
                 onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
               />
             </div>
@@ -152,7 +152,7 @@ export default function ProfilePage() {
                 onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                 placeholder="example@email.com"
                 style={inputStyle}
-                onFocus={(e) => { e.target.style.borderColor = '#10b981'; e.target.style.background = 'white'; }}
+                onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)'; e.target.style.background = 'white'; }}
                 onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
               />
             </div>
@@ -171,7 +171,7 @@ export default function ProfilePage() {
                     onChange={(e) => setPharmacyForm({ ...pharmacyForm, pharmacyName: e.target.value })}
                     placeholder="OO약국"
                     style={inputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = '#10b981'; e.target.style.background = 'white'; }}
+                    onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)'; e.target.style.background = 'white'; }}
                     onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
                   />
                 </div>
@@ -184,7 +184,7 @@ export default function ProfilePage() {
                     onChange={(e) => setPharmacyForm({ ...pharmacyForm, address: e.target.value })}
                     placeholder="서울특별시 강남구 ..."
                     style={inputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = '#10b981'; e.target.style.background = 'white'; }}
+                    onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)'; e.target.style.background = 'white'; }}
                     onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
                   />
                 </div>
@@ -197,7 +197,7 @@ export default function ProfilePage() {
                     onChange={(e) => setPharmacyForm({ ...pharmacyForm, phone: e.target.value })}
                     placeholder="02-0000-0000"
                     style={inputStyle}
-                    onFocus={(e) => { e.target.style.borderColor = '#10b981'; e.target.style.background = 'white'; }}
+                    onFocus={(e) => { e.target.style.borderColor = 'var(--color-primary)'; e.target.style.background = 'white'; }}
                     onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
                   />
                 </div>
@@ -216,9 +216,9 @@ export default function ProfilePage() {
 
             {profileSuccess && (
               <div style={{
-                background: '#f0fdf4', border: '1px solid #bbf7d0',
+                background: 'rgba(83,58,253,0.06)', border: '1px solid #bbf7d0',
                 borderRadius: 10, padding: '12px 16px',
-                color: '#16a34a', fontSize: 13, marginBottom: 16,
+                color: 'var(--color-primary-deep)', fontSize: 13, marginBottom: 16,
               }}>
                 {profileSuccess}
               </div>
@@ -229,10 +229,10 @@ export default function ProfilePage() {
               disabled={profileLoading}
               style={{
                 width: '100%', padding: '14px',
-                background: profileLoading ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
+                background: profileLoading ? '#9ca3af' : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
                 color: 'white', border: 'none', borderRadius: 12,
                 fontSize: 15, fontWeight: 600, cursor: profileLoading ? 'not-allowed' : 'pointer',
-                boxShadow: profileLoading ? 'none' : '0 4px 16px rgba(16,185,129,0.35)',
+                boxShadow: profileLoading ? 'none' : '0 4px 16px rgba(83,58,253,0.35)',
                 transition: 'opacity 0.15s',
               }}
             >
@@ -261,7 +261,7 @@ export default function ProfilePage() {
               <span style={{ color: 'white', fontSize: 18 }}>🔒</span>
             </div>
             <div>
-              <p style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', margin: 0 }}>비밀번호 재설정</p>
+              <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>비밀번호 재설정</p>
               <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, marginTop: 2 }}>
                 {user?.provider ? `${user.provider} 계정은 해당 서비스에서 관리합니다.` : '현재 비밀번호를 확인한 후 새 비밀번호로 변경합니다.'}
               </p>

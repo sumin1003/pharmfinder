@@ -31,7 +31,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%)' }}>
+    <div style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'linear-gradient(135deg, rgba(83,58,253,0.06) 0%, #f8fafc 100%)' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         {/* 카드 */}
         <div className="pf-form-card" style={{ background: 'white', borderRadius: 28, padding: '40px 40px', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', border: '1px solid #f1f5f9' }}>
@@ -39,11 +39,11 @@ export default function LoginPage() {
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <div style={{
               width: 52, height: 52, margin: '0 auto 16px',
-              background: 'linear-gradient(135deg, #10b981, #059669)',
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
               borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 16px rgba(16,185,129,0.3)', fontSize: 26,
+              boxShadow: '0 4px 16px rgba(83,58,253,0.3)', fontSize: 26,
             }}>+</div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>로그인</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-ink)', marginBottom: 6 }}>로그인</h1>
             <p style={{ fontSize: 14, color: '#94a3b8' }}>PharmFinder에 오신 것을 환영해요</p>
           </div>
 
@@ -62,10 +62,10 @@ export default function LoginPage() {
                   style={{
                     width: '100%', padding: '13px 16px', fontSize: 14,
                     border: '1.5px solid #e2e8f0', borderRadius: 12, outline: 'none',
-                    background: '#f8fafc', color: '#0f172a',
+                    background: '#f8fafc', color: 'var(--color-ink)',
                     transition: 'border-color 0.15s',
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
                   onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                 />
               </div>
@@ -87,9 +87,9 @@ export default function LoginPage() {
               type="submit" disabled={loading}
               style={{
                 width: '100%', padding: '14px', fontSize: 15, fontWeight: 700, color: 'white',
-                background: loading ? '#6ee7b7' : 'linear-gradient(135deg, #10b981, #059669)',
+                background: loading ? 'var(--color-primary-soft)' : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
                 border: 'none', borderRadius: 12, cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
+                boxShadow: '0 4px 16px rgba(83,58,253,0.3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
@@ -142,9 +142,9 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginTop: 20 }}>
           <p style={{ fontSize: 14, color: '#64748b' }}>
             계정이 없으신가요?{' '}
-            <Link to="/register" style={{ color: '#059669', fontWeight: 600, textDecoration: 'none' }}>일반 회원가입</Link>
+            <Link to="/register" style={{ color: 'var(--color-primary-deep)', fontWeight: 600, textDecoration: 'none' }}>일반 회원가입</Link>
             {' '}·{' '}
-            <Link to="/register/pharmacy" style={{ color: '#059669', fontWeight: 600, textDecoration: 'none' }}>약국 등록</Link>
+            <Link to="/register/pharmacy" style={{ color: 'var(--color-primary-deep)', fontWeight: 600, textDecoration: 'none' }}>약국 등록</Link>
           </p>
         </div>
       </div>

@@ -16,31 +16,30 @@ const CHIPS = ['두통·발열', '소화불량', '코막힘·콧물', '눈 가�
 const S = {
   hero: {
     width: '100%',
-    background: 'linear-gradient(135deg, #0f172a 0%, #064e3b 50%, #0f172a 100%)',
+    background: 'var(--color-canvas)',
     textAlign: 'center',
     position: 'relative',
     overflow: 'hidden',
   },
   heroBadge: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
-    background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)',
+    background: 'var(--color-primary-subdued)', border: '1px solid rgba(83,58,253,0.2)',
     borderRadius: 999, padding: '6px 16px', marginBottom: 28,
   },
   dot: { width: 8, height: 8, borderRadius: '50%', backgroundColor: '#fef08a', boxShadow: '0 0 6px 2px rgba(254,240,138,0.8)' },
-  heroSub: { fontSize: 18, color: '#94a3b8', marginBottom: 40, lineHeight: 1.7 },
-  tabWrap: { display: 'inline-flex', background: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 4, marginBottom: 24, border: '1px solid rgba(255,255,255,0.1)' },
-  tabActive: { padding: '10px 22px', borderRadius: 10, fontSize: 14, fontWeight: 600, background: 'white', color: '#0f172a', cursor: 'pointer', border: 'none' },
-  tabInactive: { padding: '10px 22px', borderRadius: 10, fontSize: 14, fontWeight: 500, background: 'transparent', color: '#94a3b8', cursor: 'pointer', border: 'none' },
+  heroSub: { fontSize: 18, color: 'var(--color-primary-deep)', marginBottom: 40, lineHeight: 1.6, fontWeight: 500 },
+  tabWrap: { display: 'inline-flex', background: 'var(--color-canvas-soft)', borderRadius: 14, padding: 4, marginBottom: 24, border: '1px solid var(--color-hairline)' },
+  tabActive: { padding: '10px 22px', borderRadius: 10, fontSize: 14, fontWeight: 500, background: 'var(--color-canvas)', color: 'var(--color-ink)', cursor: 'pointer', border: 'none', boxShadow: 'rgba(0,55,112,0.08) 0 1px 3px' },
+  tabInactive: { padding: '10px 22px', borderRadius: 10, fontSize: 14, fontWeight: 400, background: 'transparent', color: 'var(--color-ink-mute)', cursor: 'pointer', border: 'none' },
   searchInput: {
     flex: 1, padding: '16px 22px', fontSize: 15,
-    background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: 14, color: 'white', outline: 'none', minWidth: 0,
+    background: 'var(--color-canvas)', border: '1px solid var(--color-hairline-input)',
+    borderRadius: 8, color: 'var(--color-ink)', outline: 'none', minWidth: 0,
   },
   searchBtn: {
-    padding: '16px 28px', background: 'linear-gradient(135deg, #10b981, #059669)',
-    color: 'white', border: 'none', borderRadius: 14, fontSize: 15,
-    fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-    boxShadow: '0 4px 15px rgba(16,185,129,0.4)',
+    padding: '16px 28px', background: 'var(--color-primary)',
+    color: 'var(--color-on-primary)', border: 'none', borderRadius: 999, fontSize: 16,
+    fontWeight: 400, cursor: 'pointer', whiteSpace: 'nowrap',
   },
 };
 
@@ -97,30 +96,58 @@ export default function HomePage() {
 
       {/* ─── Hero ─── */}
       <section className="pf-hero-section" style={{ ...S.hero, padding: '96px 32px' }}>
-        {/* 배경 격자 패턴 */}
+        {/* 그라디언트 메쉬 배경 — 히어로 전체를 덮는 진한 파스텔~인디고 워시 */}
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
-          backgroundSize: '32px 32px',
+          background: 'linear-gradient(120deg, rgba(245,233,212,0.85) 0%, rgba(185,185,249,0.75) 30%, rgba(102,94,253,0.35) 55%, rgba(234,34,97,0.3) 78%, rgba(249,107,238,0.35) 100%)',
           pointerEvents: 'none',
         }} />
-        {/* 배경 글로우 */}
-        <div style={{ position: 'absolute', top: -80, right: -80, width: 400, height: 400, background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: -80, left: -80, width: 400, height: 400, background: 'radial-gradient(circle, rgba(5,150,105,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{
+          position: 'absolute', top: -200, left: '-10%', width: 620, height: 620,
+          background: 'radial-gradient(circle, rgba(245,233,212,0.95) 0%, transparent 70%)',
+          filter: 'blur(50px)', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', top: -220, left: '25%', width: 700, height: 700,
+          background: 'radial-gradient(circle, rgba(83,58,253,0.5) 0%, transparent 70%)',
+          filter: 'blur(70px)', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', top: -260, right: '-5%', width: 680, height: 680,
+          background: 'radial-gradient(circle, rgba(234,34,97,0.4) 0%, transparent 70%)',
+          filter: 'blur(70px)', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', top: -40, right: '10%', width: 480, height: 480,
+          background: 'radial-gradient(circle, rgba(249,107,238,0.35) 0%, transparent 70%)',
+          filter: 'blur(60px)', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: -180, left: '20%', width: 520, height: 520,
+          background: 'radial-gradient(circle, rgba(102,94,253,0.3) 0%, transparent 70%)',
+          filter: 'blur(60px)', pointerEvents: 'none',
+        }} />
+        {/* 본문 가독성 확보용 하단 화이트 페이드 */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(180deg, transparent 0%, transparent 55%, rgba(255,255,255,0.85) 100%)',
+          pointerEvents: 'none',
+        }} />
 
         <div style={{ position: 'relative', maxWidth: 680, margin: '0 auto' }}>
           <div style={S.heroBadge}>
             <span style={S.dot} className="animate-pulse" />
-            <span style={{ fontSize: 13, fontWeight: 500, color: '#34d399' }}>실시간 약국 재고 확인</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-primary-deep)' }}>실시간 약국 재고 확인</span>
           </div>
 
-          <h1 className="pf-hero-title" style={{ fontSize: 48, fontWeight: 800, color: 'white', lineHeight: 1.15, marginBottom: 16 }}>
+          <h1
+            className="pf-hero-title"
+            style={{ fontSize: 48, fontWeight: 700, letterSpacing: '-0.96px', color: 'var(--color-ink)', lineHeight: 1.15, marginBottom: 16 }}
+          >
             증상을 말하면<br />
-            <span style={{ background: 'linear-gradient(90deg, #f472b6, #e11d48)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              AI가
-            </span>
+            <span style={{ color: 'var(--color-primary)' }}>AI가</span>
             {' '}
-            <span style={{ color: 'white' }}>딱 맞는 약을 찾아드려요</span>
+            딱 맞는 약을 찾아드려요
           </h1>
 
           <p style={S.heroSub}>
@@ -134,7 +161,7 @@ export default function HomePage() {
               { icon: '💊', label: '10만+ 약품 DB' },
               { icon: '🏥', label: '약국 재고 연동' },
             ].map(item => (
-              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#94a3b8' }}>
+              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--color-ink-mute)' }}>
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
               </div>
@@ -179,11 +206,8 @@ export default function HomePage() {
                   key={chip}
                   type="button"
                   onClick={() => setQuery(chip)}
-                  style={{
-                    padding: '6px 14px', background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.15)', borderRadius: 999,
-                    color: '#cbd5e1', fontSize: 13, cursor: 'pointer',
-                  }}
+                  className="pill-tag-soft"
+                  style={{ fontSize: 13, cursor: 'pointer', border: 'none' }}
                 >
                   #{chip}
                 </button>
@@ -192,7 +216,7 @@ export default function HomePage() {
           )}
 
           {error && (
-            <div style={{ marginTop: 16, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '12px 18px', color: '#fca5a5', fontSize: 14 }}>
+            <div style={{ marginTop: 16, background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 10, padding: '12px 18px', color: '#9f1239', fontSize: 14 }}>
               {error}
             </div>
           )}
@@ -204,33 +228,33 @@ export default function HomePage() {
         <section ref={resultRef} style={{ padding: '60px 32px', scrollMarginTop: 80 }}>
           <div style={{ maxWidth: 720, margin: '0 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
-              <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+              <div style={{ width: 44, height: 44, background: 'var(--color-primary-subdued)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
                 🤖
               </div>
               <div>
-                <p style={{ fontWeight: 700, fontSize: 18, color: '#0f172a' }}>AI 추천 결과</p>
-                <p style={{ fontSize: 14, color: '#64748b', marginTop: 2 }}>{result.summary}</p>
+                <p style={{ fontWeight: 500, fontSize: 18, color: 'var(--color-ink)' }}>AI 추천 결과</p>
+                <p style={{ fontSize: 14, color: 'var(--color-ink-mute)', marginTop: 2 }}>{result.summary}</p>
               </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 24 }}>
               {result.medicines?.map((med, i) => (
                 <div key={i} style={{
-                  background: 'white', borderRadius: 20, padding: '24px',
-                  border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                  background: 'var(--color-canvas)', borderRadius: 12, padding: '24px',
+                  border: '1px solid var(--color-hairline)', boxShadow: 'rgba(0,55,112,0.08) 0 1px 3px',
                 }}>
                   {/* 헤더 */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <span style={{
-                        width: 30, height: 30, background: '#ecfdf5', color: '#059669',
+                        width: 30, height: 30, background: 'var(--color-primary-subdued)', color: 'var(--color-primary-deep)',
                         borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 13, fontWeight: 700, flexShrink: 0,
+                        fontSize: 13, fontWeight: 500, flexShrink: 0,
                       }}>{i + 1}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>{med.name}</span>
+                        <span style={{ fontWeight: 500, fontSize: 17, color: 'var(--color-ink)' }}>{med.name}</span>
                         {med.db_id && (
-                          <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>
+                          <span className="pill-tag-soft" style={{ fontSize: 11, fontWeight: 500 }}>
                             DB 등록
                           </span>
                         )}
@@ -238,7 +262,7 @@ export default function HomePage() {
                     </div>
                     <button
                       onClick={() => navigate(`/medicines/search?q=${encodeURIComponent(med.name)}`)}
-                      style={{ fontSize: 13, color: '#059669', background: '#ecfdf5', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}
+                      style={{ fontSize: 13, color: 'var(--color-primary)', background: 'var(--color-canvas-soft)', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}
                     >
                       종류 보기 →
                     </button>
@@ -246,27 +270,27 @@ export default function HomePage() {
 
                   {/* 추천 이유 */}
                   <div style={{ marginBottom: 10 }}>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: '#059669', marginBottom: 4 }}>추천 이유</p>
-                    <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.65 }}>{med.reason}</p>
+                    <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 4 }}>추천 이유</p>
+                    <p style={{ fontSize: 14, color: 'var(--color-ink-mute)', lineHeight: 1.65 }}>{med.reason}</p>
                   </div>
 
                   {/* 복용법 */}
                   {med.usage && (
-                    <div style={{ marginBottom: 10, background: '#f8fafc', borderRadius: 10, padding: '10px 14px' }}>
-                      <p style={{ fontSize: 12, fontWeight: 600, color: '#3b82f6', marginBottom: 3 }}>💊 복용 방법</p>
-                      <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>{med.usage}</p>
+                    <div style={{ marginBottom: 10, background: 'var(--color-canvas-soft)', borderRadius: 10, padding: '10px 14px' }}>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 3 }}>💊 복용 방법</p>
+                      <p style={{ fontSize: 13, color: 'var(--color-ink-mute)', lineHeight: 1.6 }}>{med.usage}</p>
                     </div>
                   )}
 
                   {/* 주의사항 + 부작용 */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     <div style={{ background: '#fffbeb', borderRadius: 10, padding: '10px 14px' }}>
-                      <p style={{ fontSize: 12, fontWeight: 600, color: '#d97706', marginBottom: 3 }}>⚠ 주의사항</p>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: '#d97706', marginBottom: 3 }}>⚠ 주의사항</p>
                       <p style={{ fontSize: 13, color: '#92400e', lineHeight: 1.6 }}>{med.caution}</p>
                     </div>
                     {med.side_effects && (
                       <div style={{ background: '#fff1f2', borderRadius: 10, padding: '10px 14px' }}>
-                        <p style={{ fontSize: 12, fontWeight: 600, color: '#e11d48', marginBottom: 3 }}>🔴 부작용</p>
+                        <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-ruby)', marginBottom: 3 }}>🔴 부작용</p>
                         <p style={{ fontSize: 13, color: '#9f1239', lineHeight: 1.6 }}>{med.side_effects}</p>
                       </div>
                     )}
@@ -276,9 +300,9 @@ export default function HomePage() {
             </div>
 
             {result.advice && (
-              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 16, padding: '16px 20px', display: 'flex', gap: 12 }}>
+              <div style={{ background: 'var(--color-canvas-soft)', border: '1px solid var(--color-hairline)', borderRadius: 12, padding: '16px 20px', display: 'flex', gap: 12 }}>
                 <span style={{ fontSize: 18 }}>💡</span>
-                <p style={{ fontSize: 14, color: '#1d4ed8', lineHeight: 1.6 }}>{result.advice}</p>
+                <p style={{ fontSize: 14, color: 'var(--color-ink)', lineHeight: 1.6 }}>{result.advice}</p>
               </div>
             )}
           </div>
@@ -288,15 +312,15 @@ export default function HomePage() {
       {/* ─── 기능 소개 ─── */}
       {!result && (
         <>
-          <section className="pf-section-pad" style={{ padding: '80px 32px', backgroundColor: 'white' }}>
+          <section className="pf-section-pad" style={{ padding: '80px 32px', backgroundColor: 'var(--color-canvas)' }}>
             <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
               {/* AI 플로우 3단계 */}
               <div style={{ textAlign: 'center', marginBottom: 48 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-primary)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
                   어떻게 동작하나요
                 </p>
-                <h2 style={{ fontSize: 30, fontWeight: 800, color: '#0f172a', marginBottom: 40 }}>
+                <h2 style={{ fontSize: 30, fontWeight: 300, letterSpacing: '-0.3px', color: 'var(--color-ink)', marginBottom: 40 }}>
                   3단계로 완성되는 AI 약 추천
                 </h2>
                 <div className="pf-step-flow" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, flexWrap: 'wrap' }}>
@@ -307,18 +331,18 @@ export default function HomePage() {
                   ].map((item, idx) => (
                     <span key={item.step} style={{ display: 'contents' }}>
                       <div className="pf-step-card" style={{
-                        background: item.highlight ? 'linear-gradient(135deg, #ecfdf5, #d1fae5)' : 'white',
-                        border: item.highlight ? '2px solid #6ee7b7' : '1px solid #e2e8f0',
-                        borderRadius: 20, padding: '28px 24px', width: 180, textAlign: 'center',
-                        boxShadow: item.highlight ? '0 4px 20px rgba(16,185,129,0.15)' : '0 2px 8px rgba(0,0,0,0.04)',
+                        background: item.highlight ? 'var(--color-primary-subdued)' : 'var(--color-canvas)',
+                        border: item.highlight ? '1px solid var(--color-primary-soft)' : '1px solid var(--color-hairline)',
+                        borderRadius: 12, padding: '28px 24px', width: 180, textAlign: 'center',
+                        boxShadow: item.highlight ? 'rgba(83,58,253,0.15) 0 4px 20px' : 'rgba(0,55,112,0.08) 0 1px 3px',
                       }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: item.highlight ? '#059669' : '#94a3b8', marginBottom: 10, letterSpacing: '0.05em' }}>STEP {item.step}</div>
+                        <div style={{ fontSize: 11, fontWeight: 500, color: item.highlight ? 'var(--color-primary-deep)' : 'var(--color-ink-mute)', marginBottom: 10, letterSpacing: '0.05em' }}>STEP {item.step}</div>
                         <div style={{ fontSize: 28, marginBottom: 10 }}>{item.icon}</div>
-                        <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a', marginBottom: 6 }}>{item.title}</div>
-                        <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{item.desc}</div>
+                        <div style={{ fontWeight: 500, fontSize: 15, color: 'var(--color-ink)', marginBottom: 6 }}>{item.title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--color-ink-mute)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{item.desc}</div>
                       </div>
                       {idx < 2 && (
-                        <div className="pf-step-arrow" style={{ fontSize: 20, color: '#cbd5e1', padding: '0 8px' }}>→</div>
+                        <div className="pf-step-arrow" style={{ fontSize: 20, color: 'var(--color-hairline-input)', padding: '0 8px' }}>→</div>
                       )}
                     </span>
                   ))}
@@ -327,8 +351,8 @@ export default function HomePage() {
 
               {/* 서비스 소개 헤더 */}
               <div style={{ textAlign: 'center', marginBottom: 56 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#10b981', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>서비스 소개</p>
-                <h2 style={{ fontSize: 36, fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-primary)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>서비스 소개</p>
+                <h2 style={{ fontSize: 36, fontWeight: 300, letterSpacing: '-0.64px', color: 'var(--color-ink)', lineHeight: 1.2 }}>
                   약국 방문 전에<br />미리 확인하세요
                 </h2>
               </div>
@@ -336,31 +360,30 @@ export default function HomePage() {
               {/* 3개 기능 카드 — 모바일 1열, 데스크톱 3열 */}
               <div className="pf-grid-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
                 {[
-                  { icon: '🗺️', tag: '위치 기반', title: '주변 약국 지도', desc: '현재 위치에서 가까운 약국을 지도에서 한눈에 찾고, 거리와 운영 정보를 바로 확인하세요.', link: '/map', cta: '지도 보기', color: '#3b82f6', bg: '#eff6ff' },
-                  { icon: '🤖', tag: 'AI 추천', title: 'AI 증상 분석', desc: '증상을 입력하면 AI가 적합한 일반의약품 3가지를 즉시 추천해드려요. 로그인 없이 바로 사용 가능.', link: null, cta: null, color: '#10b981', bg: '#ecfdf5' },
-                  { icon: '📦', tag: '실시간', title: '재고 바로 확인', desc: '방문 전에 약국별 보유 재고를 미리 확인해 헛걸음을 없애고 시간을 아끼세요.', link: '/map', cta: '확인하기', color: '#8b5cf6', bg: '#f5f3ff' },
+                  { icon: '🗺️', tag: '위치 기반', title: '주변 약국 지도', desc: '현재 위치에서 가까운 약국을 지도에서 한눈에 찾고, 거리와 운영 정보를 바로 확인하세요.', link: '/map', cta: '지도 보기', color: 'var(--color-primary)', bg: 'var(--color-canvas-cream)' },
+                  { icon: '🤖', tag: 'AI 추천', title: 'AI 증상 분석', desc: '증상을 입력하면 AI가 적합한 일반의약품 3가지를 즉시 추천해드려요. 로그인 없이 바로 사용 가능.', link: null, cta: null, color: 'var(--color-primary-deep)', bg: 'var(--color-primary-subdued)' },
+                  { icon: '📦', tag: '실시간', title: '재고 바로 확인', desc: '방문 전에 약국별 보유 재고를 미리 확인해 헛걸음을 없애고 시간을 아끼세요.', link: '/map', cta: '확인하기', color: 'var(--color-ruby)', bg: 'rgba(234,34,97,0.08)' },
                 ].map((item) => (
                   <div
                     key={item.title}
                     onClick={() => item.link && navigate(item.link)}
+                    className="card-feature-light"
                     style={{
-                      background: 'white', borderRadius: 24, padding: '32px 28px',
-                      border: '1px solid #e2e8f0',
-                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                       cursor: item.link ? 'pointer' : 'default',
-                      transition: 'all 0.2s',
+                      transition: 'box-shadow 0.2s',
+                      boxShadow: 'rgba(0,55,112,0.08) 0 1px 3px',
                     }}
-                    onMouseEnter={(e) => item.link && (e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.1)')}
-                    onMouseLeave={(e) => item.link && (e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)')}
+                    onMouseEnter={(e) => item.link && (e.currentTarget.style.boxShadow = 'rgba(0,55,112,0.08) 0 8px 24px, rgba(0,55,112,0.04) 0 2px 6px')}
+                    onMouseLeave={(e) => item.link && (e.currentTarget.style.boxShadow = 'rgba(0,55,112,0.08) 0 1px 3px')}
                   >
                     <div style={{ width: 52, height: 52, background: item.bg, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, marginBottom: 20 }}>
                       {item.icon}
                     </div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: item.color, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{item.tag}</div>
-                    <h3 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', marginBottom: 12 }}>{item.title}</h3>
-                    <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.7, marginBottom: 20 }}>{item.desc}</p>
+                    <div style={{ fontSize: 11, fontWeight: 500, color: item.color, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{item.tag}</div>
+                    <h3 style={{ fontSize: 20, fontWeight: 300, color: 'var(--color-ink)', marginBottom: 12 }}>{item.title}</h3>
+                    <p style={{ fontSize: 14, color: 'var(--color-ink-mute)', lineHeight: 1.7, marginBottom: 20 }}>{item.desc}</p>
                     {item.cta && (
-                      <span style={{ fontSize: 14, fontWeight: 600, color: item.color }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: item.color }}>
                         {item.cta} →
                       </span>
                     )}
@@ -371,19 +394,18 @@ export default function HomePage() {
           </section>
 
           {/* ─── 약국 CTA ─── */}
-          <section className="pf-section-pad" style={{ padding: '80px 32px', background: '#f8fafc' }}>
+          <section className="pf-section-pad" style={{ padding: '80px 32px', background: 'var(--color-canvas-soft)' }}>
             <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-              <div className="pf-cta-wrap" style={{
-                background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)',
-                borderRadius: 28, padding: '56px 64px',
+              <div className="pf-cta-wrap card-pricing-featured" style={{
+                padding: '56px 64px',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32,
               }}>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#6ee7b7', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>약국 파트너</p>
-                  <h2 style={{ fontSize: 32, fontWeight: 800, color: 'white', lineHeight: 1.25, marginBottom: 12 }}>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-primary-soft)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>약국 파트너</p>
+                  <h2 style={{ fontSize: 32, fontWeight: 300, letterSpacing: '-0.64px', color: 'var(--color-on-primary)', lineHeight: 1.25, marginBottom: 12 }}>
                     약국을 운영하시나요?
                   </h2>
-                  <p style={{ fontSize: 15, color: '#a7f3d0', lineHeight: 1.7 }}>
+                  <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.75)', lineHeight: 1.7, fontWeight: 300 }}>
                     재고를 등록하고 더 많은 고객에게 약국을 알리세요.<br />
                     관리자 승인 후 서비스를 시작할 수 있습니다.
                   </p>
@@ -391,12 +413,8 @@ export default function HomePage() {
                 <div>
                   <button
                     onClick={() => navigate('/register/pharmacy')}
-                    style={{
-                      padding: '16px 36px', background: 'white', color: '#065f46',
-                      border: 'none', borderRadius: 14, fontSize: 16, fontWeight: 700,
-                      cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                      whiteSpace: 'nowrap',
-                    }}
+                    className="btn-primary-pill"
+                    style={{ padding: '16px 36px', fontSize: 16, whiteSpace: 'nowrap' }}
                   >
                     약국 등록하기 →
                   </button>

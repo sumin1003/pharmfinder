@@ -42,8 +42,8 @@ export default function PharmacyDetailPage() {
         style={{
           width: 32,
           height: 32,
-          border: '2px solid #a7f3d0',
-          borderTopColor: '#059669',
+          border: '2px solid var(--color-primary-subdued)',
+          borderTopColor: 'var(--color-primary-deep)',
           borderRadius: '50%',
         }}
       />
@@ -85,7 +85,7 @@ export default function PharmacyDetailPage() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8 }}>
               {pharmacy.name}
             </h1>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -103,8 +103,8 @@ export default function PharmacyDetailPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                     <span style={{
                       fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
-                      background: open ? '#dcfce7' : '#f1f5f9',
-                      color: open ? '#16a34a' : '#64748b',
+                      background: open ? 'rgba(83,58,253,0.14)' : '#f1f5f9',
+                      color: open ? 'var(--color-primary-deep)' : '#64748b',
                     }}>
                       {open ? '영업 중' : '영업 종료'}
                     </span>
@@ -178,7 +178,7 @@ export default function PharmacyDetailPage() {
 
       {/* 재고 목록 헤더 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h2 style={{ fontWeight: 700, color: '#0f172a' }}>보유 재고</h2>
+        <h2 style={{ fontWeight: 700, color: 'var(--color-ink)' }}>보유 재고</h2>
         <span style={{ fontSize: 14, color: '#94a3b8' }}>{inventory.length}종</span>
       </div>
 
@@ -206,7 +206,7 @@ export default function PharmacyDetailPage() {
               justifyContent: 'space-between',
             }}>
               <div>
-                <p style={{ fontWeight: 500, color: '#0f172a', fontSize: 14 }}>{item.medicines?.name}</p>
+                <p style={{ fontWeight: 500, color: 'var(--color-ink)', fontSize: 14 }}>{item.medicines?.name}</p>
                 {item.medicines?.category && (
                   <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{item.medicines.category}</p>
                 )}
@@ -215,7 +215,7 @@ export default function PharmacyDetailPage() {
                 <span style={{
                   fontSize: 18,
                   fontWeight: 700,
-                  color: item.quantity === 0 ? '#ef4444' : item.quantity <= item.min_quantity ? '#f59e0b' : '#10b981',
+                  color: item.quantity === 0 ? '#ef4444' : item.quantity <= item.min_quantity ? '#f59e0b' : 'var(--color-primary)',
                 }}>
                   {item.quantity}
                 </span>

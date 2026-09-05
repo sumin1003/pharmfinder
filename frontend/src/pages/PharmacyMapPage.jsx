@@ -12,7 +12,7 @@ const MARKER_COLORS = {
 
 // 지도 압정 색상: 영업중(green) / 영업종료(연한 red) / 영업시간 정보 없음(gray) — 지도 마커 전용
 const MAP_PIN_COLORS = {
-  open: '#10b981',
+  open: 'var(--color-primary)',
   closed: '#f87171',
   unknown: '#94a3b8',
 };
@@ -245,7 +245,7 @@ export default function PharmacyMapPage() {
       height: isMobile ? mobileContentH : desktopH,
     }}>
       <div style={{ padding: 16, borderBottom: '1px solid #f1f5f9' }}>
-        <h2 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+        <h2 style={{ fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8 }}>
           {medicineId ? '재고 있는 약국' : '주변 약국'}
           <span style={{ marginLeft: 8, fontSize: 14, color: '#94a3b8', fontWeight: 400 }}>{pharmacies.length}곳</span>
         </h2>
@@ -262,7 +262,7 @@ export default function PharmacyMapPage() {
           style={{
             fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
             border: registeredOnly ? 'none' : '1px solid #e2e8f0',
-            background: registeredOnly ? '#059669' : 'white',
+            background: registeredOnly ? 'var(--color-primary-deep)' : 'white',
             color: registeredOnly ? 'white' : '#64748b',
           }}
         >
@@ -285,8 +285,8 @@ export default function PharmacyMapPage() {
               padding: 16,
               borderBottom: '1px solid #f1f5f9',
               cursor: 'pointer',
-              background: selected?.id === p.id ? '#f0fdf4' : 'white',
-              borderLeft: `4px solid ${selected?.id === p.id ? '#10b981' : 'transparent'}`,
+              background: selected?.id === p.id ? 'rgba(83,58,253,0.06)' : 'white',
+              borderLeft: `4px solid ${selected?.id === p.id ? 'var(--color-primary)' : 'transparent'}`,
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -294,12 +294,12 @@ export default function PharmacyMapPage() {
                 width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                 background: p.is_registered && p.has_inventory ? MARKER_COLORS.active : p.is_registered ? MARKER_COLORS.registered : MARKER_COLORS.public,
               }} />
-              <h3 style={{ fontWeight: 500, color: '#0f172a', fontSize: 14 }}>{p.name}</h3>
+              <h3 style={{ fontWeight: 500, color: 'var(--color-ink)', fontSize: 14 }}>{p.name}</h3>
             </div>
             <p style={{ fontSize: 12, color: '#64748b', marginBottom: 4, paddingLeft: 14 }}>{p.address}</p>
             <div style={{ paddingLeft: 14, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               {p.distance !== undefined && (
-                <span style={{ fontSize: 12, color: '#10b981' }}>{p.distance.toFixed(1)}km</span>
+                <span style={{ fontSize: 12, color: 'var(--color-primary)' }}>{p.distance.toFixed(1)}km</span>
               )}
               {p.is_registered && p.has_inventory && (
                 <span style={{ fontSize: 11, background: '#dbeafe', color: '#2563eb', padding: '1px 6px', borderRadius: 999 }}>재고 관리 중</span>
@@ -308,7 +308,7 @@ export default function PharmacyMapPage() {
                 <span style={{ fontSize: 11, background: '#fef3c7', color: '#d97706', padding: '1px 6px', borderRadius: 999 }}>가입 약국</span>
               )}
               {p.business_hours && isOpenNow(p.business_hours) === true && (
-                <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '1px 6px', borderRadius: 999 }}>영업 중</span>
+                <span style={{ fontSize: 11, background: 'rgba(83,58,253,0.14)', color: 'var(--color-primary-deep)', padding: '1px 6px', borderRadius: 999 }}>영업 중</span>
               )}
               {p.business_hours && isOpenNow(p.business_hours) === false && (
                 <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '1px 6px', borderRadius: 999 }}>영업 종료</span>
@@ -342,7 +342,7 @@ export default function PharmacyMapPage() {
       {panning && (
         <div style={{
           position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(15,23,42,0.85)', color: 'white', fontSize: 12, fontWeight: 500,
+          background: 'rgba(13,37,61,0.85)', color: 'white', fontSize: 12, fontWeight: 500,
           padding: '6px 14px', borderRadius: 999, zIndex: 6,
         }}>
           이 지역 약국 검색 중...
@@ -357,7 +357,7 @@ export default function PharmacyMapPage() {
             position: 'absolute', top: 12, right: 12, zIndex: 5,
             background: 'white', border: 'none', borderRadius: 999,
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            padding: '8px 14px', fontSize: 12, fontWeight: 600, color: '#0f172a',
+            padding: '8px 14px', fontSize: 12, fontWeight: 600, color: 'var(--color-ink)',
             cursor: 'pointer',
           }}
         >
@@ -396,7 +396,7 @@ export default function PharmacyMapPage() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
             <div>
-              <h3 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{selected.name}</h3>
+              <h3 style={{ fontWeight: 700, color: 'var(--color-ink)', marginBottom: 4 }}>{selected.name}</h3>
               {selected.is_registered && selected.has_inventory && (
                 <span style={{ fontSize: 12, background: '#dbeafe', color: '#2563eb', padding: '2px 8px', borderRadius: 999 }}>재고 관리 중</span>
               )}
@@ -416,7 +416,7 @@ export default function PharmacyMapPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 13, color: '#64748b' }}>{selected.business_hours}</span>
                 {isOpenNow(selected.business_hours) === true && (
-                  <span style={{ fontSize: 11, background: '#dcfce7', color: '#16a34a', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 중</span>
+                  <span style={{ fontSize: 11, background: 'rgba(83,58,253,0.14)', color: 'var(--color-primary-deep)', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 중</span>
                 )}
                 {isOpenNow(selected.business_hours) === false && (
                   <span style={{ fontSize: 11, background: '#fee2e2', color: '#dc2626', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>영업 종료</span>
@@ -431,7 +431,7 @@ export default function PharmacyMapPage() {
           {!selected.business_hours && !selected.phone && <div style={{ marginBottom: 12 }} />}
           <button
             onClick={() => handleDetail(selected)}
-            style={{ width: '100%', padding: '10px 0', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: 12, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}
+            style={{ width: '100%', padding: '10px 0', background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))', color: 'white', border: 'none', borderRadius: 12, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 16px rgba(83,58,253,0.3)' }}
           >
             {selected.is_registered ? '상세보기 / 재고 확인' : '약국 정보 보기'}
           </button>
@@ -455,8 +455,8 @@ export default function PharmacyMapPage() {
               style={{
                 flex: 1, background: 'none', border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: activeTab === tab.id ? 700 : 500,
-                color: activeTab === tab.id ? '#059669' : '#64748b',
-                borderBottom: `2px solid ${activeTab === tab.id ? '#10b981' : 'transparent'}`,
+                color: activeTab === tab.id ? 'var(--color-primary-deep)' : '#64748b',
+                borderBottom: `2px solid ${activeTab === tab.id ? 'var(--color-primary)' : 'transparent'}`,
               }}
             >
               {tab.label}

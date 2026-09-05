@@ -181,7 +181,7 @@ export default function PharmacyDashboard() {
       {/* 약국 정보 헤더 */}
       {editing ? (
         <div style={{ background: 'white', borderRadius: 20, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', padding: '24px', marginBottom: 32 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16 }}>약국 정보 수정</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 16 }}>약국 정보 수정</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {[
               { key: 'name', label: '약국명', span: false },
@@ -194,8 +194,8 @@ export default function PharmacyDashboard() {
                 <input
                   value={editForm[key]}
                   onChange={(e) => setEditForm((f) => ({ ...f, [key]: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: 12, fontSize: 14, color: '#0f172a', background: '#f8fafc', outline: 'none', boxSizing: 'border-box' }}
-                  onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: 12, fontSize: 14, color: 'var(--color-ink)', background: '#f8fafc', outline: 'none', boxSizing: 'border-box' }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
                   onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                 />
               </div>
@@ -206,7 +206,7 @@ export default function PharmacyDashboard() {
             <button onClick={() => setEditing(false)} style={{ padding: '9px 18px', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: 12, fontSize: 14, cursor: 'pointer' }}>
               취소
             </button>
-            <button onClick={handleSave} disabled={saving} style={{ padding: '9px 18px', background: saving ? '#6ee7b7' : 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
+            <button onClick={handleSave} disabled={saving} style={{ padding: '9px 18px', background: saving ? 'var(--color-primary-soft)' : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))', color: 'white', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px rgba(83,58,253,0.3)' }}>
               {saving ? '저장 중...' : '저장'}
             </button>
           </div>
@@ -214,7 +214,7 @@ export default function PharmacyDashboard() {
       ) : (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>{pharmacy?.name}</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8 }}>{pharmacy?.name}</h1>
             <p style={{ fontSize: 14, color: '#64748b', marginBottom: pharmacy?.phone ? 4 : 0 }}>{pharmacy?.address}</p>
             {pharmacy?.phone && <p style={{ fontSize: 14, color: '#94a3b8' }}>{pharmacy.phone}</p>}
             {pharmacy?.business_hours && <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>영업시간: {pharmacy.business_hours}</p>}
@@ -249,7 +249,7 @@ export default function PharmacyDashboard() {
         padding: '24px',
         marginBottom: 32,
       }}>
-        <h2 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 16 }}>재고 등록</h2>
+        <h2 style={{ fontWeight: 700, color: 'var(--color-ink)', marginBottom: 16 }}>재고 등록</h2>
 
         {/* 약품 검색 폼 */}
         <form onSubmit={handleMedicineSearch} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -265,7 +265,7 @@ export default function PharmacyDashboard() {
               padding: '13px 16px',
               fontSize: 14,
               background: '#f8fafc',
-              color: '#0f172a',
+              color: 'var(--color-ink)',
               outline: 'none',
             }}
           />
@@ -328,10 +328,10 @@ export default function PharmacyDashboard() {
               <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>선택된 약품</label>
               <div style={{
                 padding: '12px 16px',
-                background: '#dcfce7',
+                background: 'rgba(83,58,253,0.14)',
                 borderRadius: 12,
                 fontSize: 14,
-                color: '#16a34a',
+                color: 'var(--color-primary-deep)',
                 fontWeight: 500,
               }}>
                 {addForm.medicineName}
@@ -353,7 +353,7 @@ export default function PharmacyDashboard() {
                   padding: '12px 12px',
                   fontSize: 14,
                   background: '#f8fafc',
-                  color: '#0f172a',
+                  color: 'var(--color-ink)',
                   outline: 'none',
                 }}
               />
@@ -362,13 +362,13 @@ export default function PharmacyDashboard() {
               type="submit"
               style={{
                 padding: '12px 16px',
-                background: 'linear-gradient(135deg, #10b981, #059669)',
+                background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))',
                 color: 'white',
                 border: 'none',
                 borderRadius: 12,
                 fontSize: 14,
                 cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
+                boxShadow: '0 4px 16px rgba(83,58,253,0.3)',
               }}
             >
               등록
@@ -379,7 +379,7 @@ export default function PharmacyDashboard() {
 
       {/* CSV 재고 일괄 업로드 */}
       <div style={{ background: 'white', borderRadius: 16, border: '1px solid #e2e8f0', padding: 20, marginBottom: 16 }}>
-        <h3 style={{ fontWeight: 600, color: '#0f172a', marginBottom: 12, fontSize: 15 }}>CSV 재고 일괄 업로드</h3>
+        <h3 style={{ fontWeight: 600, color: 'var(--color-ink)', marginBottom: 12, fontSize: 15 }}>CSV 재고 일괄 업로드</h3>
         <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>
           형식: <code>약품명,수량,최소수량</code> (첫 줄은 헤더)
         </p>
@@ -394,7 +394,7 @@ export default function PharmacyDashboard() {
             type="submit"
             disabled={!csvFile || csvLoading}
             style={{
-              padding: '8px 16px', background: '#10b981', color: 'white', border: 'none',
+              padding: '8px 16px', background: 'var(--color-primary)', color: 'white', border: 'none',
               borderRadius: 8, fontSize: 13, cursor: csvFile && !csvLoading ? 'pointer' : 'not-allowed',
               opacity: csvFile && !csvLoading ? 1 : 0.5, whiteSpace: 'nowrap',
             }}
@@ -404,7 +404,7 @@ export default function PharmacyDashboard() {
         </form>
         {csvResult && !csvResult.error && (
           <div style={{ marginTop: 10, fontSize: 13 }}>
-            <span style={{ color: '#16a34a', fontWeight: 500 }}>✓ {csvResult.success}개 등록 완료</span>
+            <span style={{ color: 'var(--color-primary-deep)', fontWeight: 500 }}>✓ {csvResult.success}개 등록 완료</span>
             {csvResult.fuzzy > 0 && (
               <div style={{ color: '#d97706', marginTop: 4 }}>
                 ⚠ {csvResult.fuzzy}개는 유사 검색으로 매칭됐습니다. 약품명을 확인하세요.
@@ -423,7 +423,7 @@ export default function PharmacyDashboard() {
       </div>
 
       {/* 재고 목록 */}
-      <h2 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 16 }}>
+      <h2 style={{ fontWeight: 700, color: 'var(--color-ink)', marginBottom: 16 }}>
         재고 현황{' '}
         <span style={{ fontSize: 14, color: '#94a3b8', fontWeight: 400 }}>{inventory.length}종</span>
       </h2>
@@ -439,7 +439,7 @@ export default function PharmacyDashboard() {
             gap: 16,
           }}>
             <div style={{ flex: 1 }}>
-              <p style={{ fontWeight: 500, color: '#0f172a' }}>{item.medicines?.name}</p>
+              <p style={{ fontWeight: 500, color: 'var(--color-ink)' }}>{item.medicines?.name}</p>
               <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>최소 재고: {item.min_quantity}개</p>
             </div>
             <input
@@ -457,7 +457,7 @@ export default function PharmacyDashboard() {
                 padding: '6px 8px',
                 fontSize: 14,
                 textAlign: 'center',
-                color: item.quantity <= item.min_quantity ? '#ef4444' : '#0f172a',
+                color: item.quantity <= item.min_quantity ? '#ef4444' : 'var(--color-ink)',
                 background: '#f8fafc',
                 outline: 'none',
               }}
@@ -487,7 +487,7 @@ export default function PharmacyDashboard() {
 
       {/* 공공데이터 약국 연결 */}
       <div style={{ background: 'white', borderRadius: 20, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', padding: '24px', marginTop: 32 }}>
-        <h2 style={{ fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>지도 연결 설정</h2>
+        <h2 style={{ fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8 }}>지도 연결 설정</h2>
         <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>
           공공데이터 약국 목록에서 내 약국을 찾아 연결하면 지도에서 &apos;재고 관리 중&apos; 약국으로 표시됩니다.
         </p>
@@ -497,7 +497,7 @@ export default function PharmacyDashboard() {
             value={linkSearch}
             onChange={(e) => setLinkSearch(e.target.value)}
             placeholder="약국 이름으로 검색"
-            style={{ flex: 1, border: '1.5px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', fontSize: 14, background: '#f8fafc', color: '#0f172a', outline: 'none' }}
+            style={{ flex: 1, border: '1.5px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', fontSize: 14, background: '#f8fafc', color: 'var(--color-ink)', outline: 'none' }}
           />
           <button
             type="submit"
@@ -509,7 +509,7 @@ export default function PharmacyDashboard() {
         </form>
 
         {linkMsg && (
-          <p style={{ fontSize: 13, color: linkMsg.includes('연결됐습니다') ? '#16a34a' : '#dc2626', marginBottom: 12 }}>
+          <p style={{ fontSize: 13, color: linkMsg.includes('연결됐습니다') ? 'var(--color-primary-deep)' : '#dc2626', marginBottom: 12 }}>
             {linkMsg}
           </p>
         )}
@@ -522,7 +522,7 @@ export default function PharmacyDashboard() {
                 style={{ padding: '12px 16px', borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               >
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 500, color: '#0f172a' }}>{r.name}</p>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-ink)' }}>{r.name}</p>
                   <p style={{ fontSize: 12, color: '#94a3b8' }}>{r.address}</p>
                   {r.linked_pharmacy_id && (
                     <p style={{ fontSize: 11, color: '#f59e0b' }}>이미 연결된 약국</p>
@@ -531,7 +531,7 @@ export default function PharmacyDashboard() {
                 {!r.linked_pharmacy_id && (
                   <button
                     onClick={() => handleLinkConfirm(r.id, r.name)}
-                    style={{ padding: '6px 14px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: 10, fontSize: 13, cursor: 'pointer' }}
+                    style={{ padding: '6px 14px', background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))', color: 'white', border: 'none', borderRadius: 10, fontSize: 13, cursor: 'pointer' }}
                   >
                     연결
                   </button>

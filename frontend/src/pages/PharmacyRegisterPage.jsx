@@ -5,7 +5,7 @@ import api from '../services/api';
 const inputStyle = {
   width: '100%', padding: '13px 16px', fontSize: 14,
   border: '1.5px solid #e2e8f0', borderRadius: 12, outline: 'none',
-  background: '#f8fafc', color: '#0f172a',
+  background: '#f8fafc', color: 'var(--color-ink)',
 };
 
 // 약국 등록 신청 페이지 — 약국 정보를 입력받아 관리자 승인 대기 상태로 신청
@@ -33,14 +33,14 @@ export default function PharmacyRegisterPage() {
   };
 
   if (done) return (
-    <div style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'linear-gradient(135deg, #f0fdf4, #f8fafc)' }}>
+    <div style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'linear-gradient(135deg, rgba(83,58,253,0.06), #f8fafc)' }}>
       <div style={{ textAlign: 'center', maxWidth: 400 }}>
         <div style={{ fontSize: 64, marginBottom: 20 }}>✅</div>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginBottom: 10 }}>신청 완료!</h2>
+        <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-ink)', marginBottom: 10 }}>신청 완료!</h2>
         <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, marginBottom: 28 }}>
           관리자 승인 후 로그인하실 수 있습니다.<br />보통 1~2 영업일 내 처리됩니다.
         </p>
-        <button onClick={() => navigate('/login')} style={{ padding: '14px 32px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+        <button onClick={() => navigate('/login')} style={{ padding: '14px 32px', background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))', color: 'white', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
           로그인 페이지로 →
         </button>
       </div>
@@ -58,12 +58,12 @@ export default function PharmacyRegisterPage() {
   ];
 
   return (
-    <div style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', background: 'linear-gradient(135deg, #f0fdf4, #f8fafc)' }}>
+    <div style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', background: 'linear-gradient(135deg, rgba(83,58,253,0.06), #f8fafc)' }}>
       <div style={{ width: '100%', maxWidth: 460 }}>
         <div style={{ background: 'white', borderRadius: 28, padding: '40px', boxShadow: '0 8px 40px rgba(0,0,0,0.08)', border: '1px solid #f1f5f9' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <div style={{ width: 52, height: 52, margin: '0 auto 16px', background: 'linear-gradient(135deg, #10b981, #059669)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}>🏥</div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>약국 등록 신청</h1>
+            <div style={{ width: 52, height: 52, margin: '0 auto 16px', background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, boxShadow: '0 4px 16px rgba(83,58,253,0.3)' }}>🏥</div>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-ink)', marginBottom: 6 }}>약국 등록 신청</h1>
             <p style={{ fontSize: 13, color: '#94a3b8' }}>관리자 승인 후 서비스 이용이 가능합니다</p>
           </div>
 
@@ -77,7 +77,7 @@ export default function PharmacyRegisterPage() {
                   onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                   placeholder={placeholder}
                   style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
                   onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                 />
               </div>
@@ -91,9 +91,9 @@ export default function PharmacyRegisterPage() {
 
             <button type="submit" disabled={loading} style={{
               width: '100%', padding: '14px', fontSize: 15, fontWeight: 700, color: 'white',
-              background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', borderRadius: 12,
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-deep))', border: 'none', borderRadius: 12,
               cursor: loading ? 'not-allowed' : 'pointer', marginTop: 4,
-              boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
+              boxShadow: '0 4px 16px rgba(83,58,253,0.3)',
             }}>
               {loading ? '처리 중...' : '가입 신청하기'}
             </button>
@@ -101,7 +101,7 @@ export default function PharmacyRegisterPage() {
         </div>
         <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#64748b' }}>
           일반 사용자이신가요?{' '}
-          <Link to="/register" style={{ color: '#059669', fontWeight: 600, textDecoration: 'none' }}>일반 회원가입</Link>
+          <Link to="/register" style={{ color: 'var(--color-primary-deep)', fontWeight: 600, textDecoration: 'none' }}>일반 회원가입</Link>
         </p>
       </div>
     </div>
